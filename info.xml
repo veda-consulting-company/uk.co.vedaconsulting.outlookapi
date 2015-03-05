@@ -2,11 +2,11 @@
 <extension key="uk.co.vedaconsulting.outlookapi" type="module">
   <file>outlookapi</file>
   <name>CiviOutlook with api</name>
-  <description>CiviOutlook with api and create activities and get domain</description>
+  <description>Outlook for custom API</description>
   <license>AGPL-3.0</license>
   <maintainer>
-    <author>vajeevan</author>
-    <email>vajeevan@gmail.com</email>
+    <author>veda consulting</author>
+    <email>support@vedaconsulting.co.uk</email>
   </maintainer>
   <urls>
     <url desc="Main Extension Page">http://vedaconsulting.co.uk</url>

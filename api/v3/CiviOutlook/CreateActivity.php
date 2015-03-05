@@ -21,28 +21,48 @@ function _civicrm_api3_civi_outlook_createactivity_spec(&$spec) {
  * @see civicrm_api3_create_error
  * @throws API_Exception
  */
+
+
 function civicrm_api3_civi_outlook_createactivity($params) {
   $customParams = array(
   'sequential' => 1,
   );
- 
-  if (isset($params['key']) && !empty($params['key'])) {
-    $customParams['key'] = $params['key'];
-  }
-  if (isset($params['api_key']) && !empty($params['api_key'])) {
+    
+    $resultGetEmail = array();
+      if (isset($params['email']) && !empty($params['email'])) {
+      $resultGetEmail['email']= $params['email'];
+    }
+    
+    $resultGetContact = civicrm_api3('Contact', 'get', $resultGetEmail );
+    
+    if (array_key_exists('id', $resultGetContact) && isset($resultGetContact['id']) ){
+      $customParams['source_contact_id']= $resultGetContact['id'];  
+    }
+    
+    if (!array_key_exists('id', $resultGetContact)) {
+      $customPar['contact_type'] = "Individual";
+      if (isset($params['email']) && !empty($params['email'])) {
+      $customPar['email']= $params['email'];
+      }    
+      $customParams = civicrm_api3('Contact', 'create', $customPar ); 
+    }
+    
+    if (isset($params['key']) && !empty($params['key'])) {
+    $customParams['key']= $params['key'];
+    }
+    if (isset($params['api_key']) && !empty($params['api_key'])) {
     $customParams['api_key'] = $params['api_key'];
-  }
-  if (isset($params['activity_type_id']) && !empty($params['activity_type_id'])) {
+    }
+    if (isset($params['activity_type_id']) && !empty($params['activity_type_id'])) {
     $customParams['activity_type_id'] = $params['activity_type_id'];
-  }
-  if (isset($params['source_contact_id']) && !empty($params['source_contact_id'])) {
+    }
+    if (isset($params['source_contact_id']) && !empty($params['source_contact_id'])) {
     $customParams['source_contact_id'] = $params['source_contact_id'];
-  }
-  if (isset($params['subject']) && !empty($params['subject'])) {
+    }
+    if (isset($params['subject']) && !empty($params['subject'])) {
     $customParams['subject'] = $params['subject'];
-  }
-  
+    }
+    
   $result = civicrm_api3('Activity', 'create', $customParams);
   return $result;
 }
-

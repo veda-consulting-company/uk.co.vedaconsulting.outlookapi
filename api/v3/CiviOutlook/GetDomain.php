@@ -25,15 +25,12 @@ function civicrm_api3_civi_outlook_getdomain($params) {
   $customParams = array(
   'sequential' => 1,
   );
-
   if (isset($params['key']) && !empty($params['key'])) {
     $customParams['key'] = $params['key'];
   }
-
   if (isset($params['api_key']) && !empty($params['api_key'])) {
     $customParams['api_key'] = $params['api_key'];
   }
-
   $result = civicrm_api3('Domain', 'get', $customParams);
   return $result;
 }
