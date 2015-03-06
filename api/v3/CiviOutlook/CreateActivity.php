@@ -28,41 +28,40 @@ function civicrm_api3_civi_outlook_createactivity($params) {
   'sequential' => 1,
   );
     
-    $resultGetEmail = array();
-      if (isset($params['email']) && !empty($params['email'])) {
-      $resultGetEmail['email']= $params['email'];
-    }
-    
-    $resultGetContact = civicrm_api3('Contact', 'get', $resultGetEmail );
-    
-    if (array_key_exists('id', $resultGetContact) && isset($resultGetContact['id']) ){
-      $customParams['source_contact_id']= $resultGetContact['id'];  
-    }
-    
-    if (!array_key_exists('id', $resultGetContact)) {
-      $customPar['contact_type'] = "Individual";
-      if (isset($params['email']) && !empty($params['email'])) {
-      $customPar['email']= $params['email'];
-      }    
-      $customParams = civicrm_api3('Contact', 'create', $customPar ); 
-    }
-    
-    if (isset($params['key']) && !empty($params['key'])) {
-    $customParams['key']= $params['key'];
-    }
-    if (isset($params['api_key']) && !empty($params['api_key'])) {
-    $customParams['api_key'] = $params['api_key'];
-    }
-    if (isset($params['activity_type_id']) && !empty($params['activity_type_id'])) {
-    $customParams['activity_type_id'] = $params['activity_type_id'];
-    }
-    if (isset($params['source_contact_id']) && !empty($params['source_contact_id'])) {
-    $customParams['source_contact_id'] = $params['source_contact_id'];
-    }
-    if (isset($params['subject']) && !empty($params['subject'])) {
-    $customParams['subject'] = $params['subject'];
-    }
-    
+  $resultGetEmail = array();
+  if (CRM_Utils_Array::value('email', $params)) {
+  $resultGetEmail['email']= $params['email'];
+  } 
+  $resultOutlookContact = civicrm_api3('Contact', 'get', $resultGetEmail );
+  
+   //Contact exists 
+  if (array_key_exists('id', $resultOutlookContact) && CRM_Utils_Array::value('id', $resultOutlookContact) ){
+    $customParams['source_contact_id']= $resultOutlookContact['id'];  
+  }
+  else {
+    //Create new contact
+    $contact = array();
+    $contact['contact_type'] = "Individual";
+    $contact['email']=  $params['email'];
+    $contactCreate = civicrm_api3('Contact', 'create', $contact );
+    $customParams['source_contact_id']= $contactCreate['id'];
+  }
+  if (CRM_Utils_Array::value('key', $params)) {
+  $customParams['key']= $params['key'];
+  }
+  if (CRM_Utils_Array::value('api_key', $params)) {
+  $customParams['api_key'] = $params['api_key'];
+  }
+  if (CRM_Utils_Array::value('activity_type_id', $params)) {
+  $customParams['activity_type_id'] = $params['activity_type_id'];
+  }
+  if (CRM_Utils_Array::value('source_contact_id', $params)) {
+  $customParams['source_contact_id'] = $params['source_contact_id'];
+  }
+  if (CRM_Utils_Array::value('subject', $params)) {
+  $customParams['subject'] = $params['subject'];
+  }
+  
   $result = civicrm_api3('Activity', 'create', $customParams);
-  return $result;
+  return $result;  
 }
