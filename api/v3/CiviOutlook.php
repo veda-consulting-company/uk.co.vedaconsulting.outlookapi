@@ -22,17 +22,17 @@ function _civicrm_api3_civi_outlook_createactivity_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_civi_outlook_getdomain($params) {
-  $customParams = array(
-  'sequential' => 1,
+  $customDomainParams = array(
+      'sequential' => 1,
   );
   if (isset($params['key']) && !empty($params['key'])) {
-    $customParams['key'] = $params['key'];
-  }
+    $customDomainParams['key'] = $params['key'];
+    }
   if (isset($params['api_key']) && !empty($params['api_key'])) {
-    $customParams['api_key'] = $params['api_key'];
-  }
-  $result = civicrm_api3('Domain', 'get', $customParams);
-  return $result;
+    $customDomainParams['api_key'] = $params['api_key'];
+    }
+   $result = outlook_civicrm_api3('Domain', 'get', $customDomainParams, 'CiviOutlook', 'getdomain', $params);
+    return $result;
 }
 
 /**
@@ -49,8 +49,7 @@ function civicrm_api3_civi_outlook_createactivity($params) {
   'sequential' => 1,
   );
 
-  $paramGetEmail = array();
-  
+  $paramGetEmail = array(); 
   //Email is required here
   if (CRM_Utils_Array::value('email', $params)) {
     $paramGetEmail['email']= $params['email'];
@@ -65,7 +64,7 @@ function civicrm_api3_civi_outlook_createactivity($params) {
     }
     //Contact exists
     if (array_key_exists('id', $resultOutlookContact) && CRM_Utils_Array::value('id', $resultOutlookContact) ){
-      $customActivityParams['source_contact_id']= $resultOutlookContact['id'];
+      $customActivityParams['target_contact_id'] = $resultOutlookContact['id'];
     }
     else {
       //Create new contact
@@ -73,27 +72,59 @@ function civicrm_api3_civi_outlook_createactivity($params) {
       $contact['contact_type'] = "Individual";
       $contact['email']=  $params['email'];
       $contactCreate = civicrm_api3('Contact', 'create', $contact );
-      $customActivityParams['source_contact_id']= $contactCreate['id'];
+      $customActivityParams['target_contact_id'] = $contactCreate['id'];
     }
   }
+  //if target_contact_id is found, send it to create activity api directly
 
-  //if source_contact_id is found, send it to create activity api directly
-  if (CRM_Utils_Array::value("ot_source_contact_id", $params)) {
-    $customActivityParams['source_contact_id'] = $params['ot_source_contact_id'];
-  }
-  if (CRM_Utils_Array::value('key', $params)) {
-    $customActivityParams['key']= $params['key'];
-  }
-  if (CRM_Utils_Array::value('api_key', $params)) {
-    $customActivityParams['api_key'] = $params['api_key'];
-  }
-  if (CRM_Utils_Array::value('activity_type_id', $params)) {
-    $customActivityParams['activity_type_id'] = $params['activity_type_id'];
-  }
-  if (CRM_Utils_Array::value('subject', $params)) {
-    $customActivityParams['subject'] = $params['subject'];
-  }
+    $getId = civicrm_api3('Contact', 'get', array('sequential' => 1, 'api_key' => $params['api_key']));
 
-  $result = civicrm_api3('Activity', 'create', $customActivityParams);
+    if (CRM_Utils_Array::value('id', $getId)) {
+    $customActivityParams['source_contact_id'] = $getId['id'];
+    }
+    if (CRM_Utils_Array::value('key', $params)) {
+        $customActivityParams['key']= $params['key'];
+    }
+    if (CRM_Utils_Array::value('api_key', $params)) {
+        $customActivityParams['api_key'] = $params['api_key'];
+    }
+    if (CRM_Utils_Array::value('activity_type_id', $params)) {
+        $customActivityParams['activity_type_id'] = $params['activity_type_id'];
+    }
+    if (CRM_Utils_Array::value('subject', $params)) {
+        $customActivityParams['subject'] = $params['subject'];
+    }
+    if (CRM_Utils_Array::value('email_body', $params)) {
+        $customActivityParams['details'] = $params['email_body'];
+    }
+    if (CRM_Utils_Array::value('target_contact_id', $params)) {
+        $customActivityParams['target_contact_id'] = $params['target_contact_id'];
+    }
+   $result = outlook_civicrm_api3('Activity', 'create', $customActivityParams, 'CiviOutlook', 'createactivity', $params);
+   return $result;
+}
+function civicrm_api3_civi_outlook_insertauditlog($entity, $action, $request, $response) {
+
+    if (empty($entity) || empty($action) || empty($request) || empty($response)) {
+        return;
+    }
+    $insertQuery = "INSERT INTO `outlook_civicrm_audit` (`datetime`, `entity`, `action`, `request`, `response`) VALUES (now(), %1, %2, %3, %4)";
+    $insertParams = array(
+      1 => array($entity, 'String'),
+      2 => array($action, 'String'),
+      3 => array(serialize($request), 'String'),
+      4 => array(serialize($response), 'String'),
+    );
+    try {
+        CRM_Core_DAO::executeQuery($insertQuery, $insertParams);
+    }
+    catch (CRM_Core_Exception $e) {
+        return;
+    }
+}
+
+function outlook_civicrm_api3($entity, $action, $customParams, $entitycivioutlook, $actioncivioutlook, $params) {
+  $result = civicrm_api3($entity, $action, $customParams);
+  civicrm_api3_civi_outlook_insertauditlog($entitycivioutlook, $actioncivioutlook, $params, $result);
   return $result;
 }
