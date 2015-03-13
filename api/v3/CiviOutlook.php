@@ -27,12 +27,12 @@ function civicrm_api3_civi_outlook_getdomain($params) {
   );
   if (isset($params['key']) && !empty($params['key'])) {
     $customDomainParams['key'] = $params['key'];
-    }
+  }
   if (isset($params['api_key']) && !empty($params['api_key'])) {
     $customDomainParams['api_key'] = $params['api_key'];
-    }
-   $result = outlook_civicrm_api3('Domain', 'get', $customDomainParams, 'CiviOutlook', 'getdomain', $params);
-    return $result;
+  }
+  $result = outlook_civicrm_api3('Domain', 'get', $customDomainParams, 'CiviOutlook', 'getdomain', $params);
+  return $result;
 }
 
 /**
@@ -50,13 +50,15 @@ function civicrm_api3_civi_outlook_createactivity($params) {
   );
   $paramGetEmail = $checkMultipleRecipients = array();
   
-  //Email is required here
+    //Email is required here
   if (CRM_Utils_Array::value('email', $params)) {
     $checkMultipleRecipients = explode(";", $params['email']);
+    $finalresults = array();
+        
     foreach ($checkMultipleRecipients as $key => $recipientEmail) {
-      $paramGetEmail['email'] = $recipientEmail;
+      $paramGetEmail['email'] = $recipientEmail;      
       $resultOutlookContact = civicrm_api3('Contact', 'get', $paramGetEmail);
-
+            
       //If there are duplicate contacts return those contacts to Outlook
       if (!empty($resultOutlookContact)) {
         $countContact = count(array_keys($resultOutlookContact['values']));
@@ -106,9 +108,10 @@ function civicrm_api3_civi_outlook_createactivity($params) {
         $customActivityParams['target_contact_id'] = $params['target_contact_id'];
       }
       $result = outlook_civicrm_api3('Activity', 'create', $customActivityParams, 'CiviOutlook', 'createactivity', $params);
+      $finalresults[] = $result;
     }
+    return civicrm_api3_create_success($finalresults, $params);
   }
-  return $result;
 }
 function civicrm_api3_civi_outlook_insertauditlog($entity, $action, $request, $response) {
 
@@ -143,7 +146,7 @@ function civicrm_api3_civi_outlook_getlables() {
 }
 
 function outlook_civicrm_api3($entity, $action, $customParams, $entitycivioutlook, $actioncivioutlook, $params) {
-  $result = civicrm_api3($entity, $action, $customParams);
+  $result = civicrm_api3($entity, $action, $customParams); 
   civicrm_api3_civi_outlook_insertauditlog($entitycivioutlook, $actioncivioutlook, $params, $result);
   return $result;
 }
