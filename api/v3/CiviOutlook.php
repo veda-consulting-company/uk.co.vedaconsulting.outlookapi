@@ -49,34 +49,39 @@ function civicrm_api3_civi_outlook_createactivity($params) {
   'sequential' => 1,
   );
 
-  $paramGetEmail = array(); 
+  $paramGetEmail = $checkMultipleRecipients = array();
+
   //Email is required here
   if (CRM_Utils_Array::value('email', $params)) {
-    $paramGetEmail['email']= $params['email'];
-    $resultOutlookContact = civicrm_api3('Contact', 'get', $paramGetEmail );
+    $checkMultipleRecipients = explode(";", $params['email']);
 
-    //If there are duplicate contacts return those contacts to Outlook
-    if (!empty($resultOutlookContact)) {
-      $countContact = count(array_keys($resultOutlookContact['values']));
-      if ($countContact > 1) {
-        return $resultOutlookContact;
+    foreach($checkMultipleRecipients as $key => $recipientEmail) {
+      $paramGetEmail['email']= $recipientEmail;
+      $resultOutlookContact = civicrm_api3('Contact', 'get', $paramGetEmail );
+
+      //If there are duplicate contacts return those contacts to Outlook
+      if (!empty($resultOutlookContact)) {
+        $countContact = count(array_keys($resultOutlookContact['values']));
+        if ($countContact > 1) {
+          return $resultOutlookContact;
+        }
+      }
+      //Contact exists
+      if (array_key_exists('id', $resultOutlookContact) && CRM_Utils_Array::value('id', $resultOutlookContact) ){
+        $customActivityParams['target_contact_id'] = $resultOutlookContact['id'];
+      }
+      else {
+        //Create new contact
+        $contact = array();
+        $contact['contact_type'] = "Individual";
+        $contact['email']=  $recipientEmail;
+        $contactCreate = civicrm_api3('Contact', 'create', $contact );
+        $customActivityParams['target_contact_id'] = $contactCreate['id'];
       }
     }
-    //Contact exists
-    if (array_key_exists('id', $resultOutlookContact) && CRM_Utils_Array::value('id', $resultOutlookContact) ){
-      $customActivityParams['target_contact_id'] = $resultOutlookContact['id'];
-    }
-    else {
-      //Create new contact
-      $contact = array();
-      $contact['contact_type'] = "Individual";
-      $contact['email']=  $params['email'];
-      $contactCreate = civicrm_api3('Contact', 'create', $contact );
-      $customActivityParams['target_contact_id'] = $contactCreate['id'];
-    }
   }
-  //if target_contact_id is found, send it to create activity api directly
 
+  //if target_contact_id is found, send it to create activity api directly
     $getId = civicrm_api3('Contact', 'get', array('sequential' => 1, 'api_key' => $params['api_key']));
 
     if (CRM_Utils_Array::value('id', $getId)) {
@@ -125,6 +130,6 @@ function civicrm_api3_civi_outlook_insertauditlog($entity, $action, $request, $r
 
 function outlook_civicrm_api3($entity, $action, $customParams, $entitycivioutlook, $actioncivioutlook, $params) {
   $result = civicrm_api3($entity, $action, $customParams);
-  civicrm_api3_civi_outlook_insertauditlog($entitycivioutlook, $actioncivioutlook, $params, $result);
+  //civicrm_api3_civi_outlook_insertauditlog($entitycivioutlook, $actioncivioutlook, $params, $result);
   return $result;
 }
