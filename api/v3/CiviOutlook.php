@@ -27,12 +27,12 @@ function civicrm_api3_civi_outlook_getdomain($params) {
   );
   if (isset($params['key']) && !empty($params['key'])) {
     $customDomainParams['key'] = $params['key'];
-    }
+  }
   if (isset($params['api_key']) && !empty($params['api_key'])) {
     $customDomainParams['api_key'] = $params['api_key'];
-    }
-   $result = outlook_civicrm_api3('Domain', 'get', $customDomainParams, 'CiviOutlook', 'getdomain', $params);
-    return $result;
+  }
+  $result = outlook_civicrm_api3('Domain', 'get', $customDomainParams, 'CiviOutlook', 'getdomain', $params);
+  return $result;
 }
 
 /**
@@ -48,14 +48,12 @@ function civicrm_api3_civi_outlook_createactivity($params) {
   $customActivityParams = array(
   'sequential' => 1,
   );
-
   $paramGetEmail = $checkMultipleRecipients = array();
 
   //Email is required here
   if (CRM_Utils_Array::value('email', $params)) {
     $checkMultipleRecipients = explode(";", $params['email']);
     $finalresults = array();
-
     foreach($checkMultipleRecipients as $key => $recipientEmail) {
       strpos($recipientEmail, "(") !== false;
       if (preg_match('!\(([^\)]+)\)!', $recipientEmail, $match)) {
@@ -114,6 +112,7 @@ function civicrm_api3_civi_outlook_createactivity($params) {
       $result = outlook_civicrm_api3('Activity', 'create', $customActivityParams, 'CiviOutlook', 'createactivity', $params);
       $finalresults[] = $result;
     }
+    return civicrm_api3_create_success($finalresults, $params);
   }
 }
 function civicrm_api3_civi_outlook_insertauditlog($entity, $action, $request, $response) {
@@ -135,7 +134,18 @@ function civicrm_api3_civi_outlook_insertauditlog($entity, $action, $request, $r
         return;
     }
 }
-
+function civicrm_api3_civi_outlook_getlables() {
+  $customLablesParams = array(
+    'civi_results_url' => ts('CiviCRM Resource URL'),
+    'api_key' => ts('Api Key'),
+    'site_key' => ts('Site Key'),
+    'help_for_civicrm_resource_url' => ts('(Absolute URL of the location where the civicrm module is installed)
+      e.g http://www.example.com/sites/all/modules/civicrm'),
+    'help_for_api_key' => ts('(Key provided by your Site Admin)'),
+    'help_for_site_key' => ts('(Site Key available to you in civicrm.setting.php file)'),
+  );
+  return $customLablesParams;
+}
 function outlook_civicrm_api3($entity, $action, $customParams, $entitycivioutlook, $actioncivioutlook, $params) {
   $result = civicrm_api3($entity, $action, $customParams);
   civicrm_api3_civi_outlook_insertauditlog($entitycivioutlook, $actioncivioutlook, $params, $result);
