@@ -54,8 +54,13 @@ function civicrm_api3_civi_outlook_createactivity($params) {
   //Email is required here
   if (CRM_Utils_Array::value('email', $params)) {
     $checkMultipleRecipients = explode(";", $params['email']);
+    $finalresults = array();
 
     foreach($checkMultipleRecipients as $key => $recipientEmail) {
+      strpos($recipientEmail, "(") !== false;
+      if (preg_match('!\(([^\)]+)\)!', $recipientEmail, $match)) {
+        $recipientEmail = $match[1];
+      }
       $paramGetEmail['email']= $recipientEmail;
       $resultOutlookContact = civicrm_api3('Contact', 'get', $paramGetEmail );
 
@@ -78,35 +83,38 @@ function civicrm_api3_civi_outlook_createactivity($params) {
         $contactCreate = civicrm_api3('Contact', 'create', $contact );
         $customActivityParams['target_contact_id'] = $contactCreate['id'];
       }
+      if ($_REQUEST['api_key']) {
+        $source_contact_id = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $_REQUEST['api_key'], 'id', 'api_key');
+        $customActivityParams['source_contact_id'] = $source_contact_id;
+      }
+      else {
+        $getId = civicrm_api3('Contact', 'get', array('sequential' => 1, 'api_key' => $params['api_key']));
+        if (CRM_Utils_Array::value('id', $getId)) {
+          $customActivityParams['source_contact_id'] = $getId['id'];
+        }
+      }
+      if (CRM_Utils_Array::value('key', $params)) {
+        $customActivityParams['key']= $params['key'];
+      }
+      if (CRM_Utils_Array::value('api_key', $params)) {
+        $customActivityParams['api_key'] = $params['api_key'];
+      }
+      if (CRM_Utils_Array::value('activity_type_id', $params)) {
+        $customActivityParams['activity_type_id'] = $params['activity_type_id'];
+      }
+      if (CRM_Utils_Array::value('subject', $params)) {
+        $customActivityParams['subject'] = $params['subject'];
+      }
+      if (CRM_Utils_Array::value('email_body', $params)) {
+        $customActivityParams['details'] = $params['email_body'];
+      }
+      if (CRM_Utils_Array::value('target_contact_id', $params)) {
+        $customActivityParams['target_contact_id'] = $params['target_contact_id'];
+      }
+      $result = outlook_civicrm_api3('Activity', 'create', $customActivityParams, 'CiviOutlook', 'createactivity', $params);
+      $finalresults[] = $result;
     }
   }
-
-  //if target_contact_id is found, send it to create activity api directly
-    $getId = civicrm_api3('Contact', 'get', array('sequential' => 1, 'api_key' => $params['api_key']));
-
-    if (CRM_Utils_Array::value('id', $getId)) {
-    $customActivityParams['source_contact_id'] = $getId['id'];
-    }
-    if (CRM_Utils_Array::value('key', $params)) {
-        $customActivityParams['key']= $params['key'];
-    }
-    if (CRM_Utils_Array::value('api_key', $params)) {
-        $customActivityParams['api_key'] = $params['api_key'];
-    }
-    if (CRM_Utils_Array::value('activity_type_id', $params)) {
-        $customActivityParams['activity_type_id'] = $params['activity_type_id'];
-    }
-    if (CRM_Utils_Array::value('subject', $params)) {
-        $customActivityParams['subject'] = $params['subject'];
-    }
-    if (CRM_Utils_Array::value('email_body', $params)) {
-        $customActivityParams['details'] = $params['email_body'];
-    }
-    if (CRM_Utils_Array::value('target_contact_id', $params)) {
-        $customActivityParams['target_contact_id'] = $params['target_contact_id'];
-    }
-   $result = outlook_civicrm_api3('Activity', 'create', $customActivityParams, 'CiviOutlook', 'createactivity', $params);
-   return $result;
 }
 function civicrm_api3_civi_outlook_insertauditlog($entity, $action, $request, $response) {
 
@@ -130,6 +138,6 @@ function civicrm_api3_civi_outlook_insertauditlog($entity, $action, $request, $r
 
 function outlook_civicrm_api3($entity, $action, $customParams, $entitycivioutlook, $actioncivioutlook, $params) {
   $result = civicrm_api3($entity, $action, $customParams);
-  //civicrm_api3_civi_outlook_insertauditlog($entitycivioutlook, $actioncivioutlook, $params, $result);
+  civicrm_api3_civi_outlook_insertauditlog($entitycivioutlook, $actioncivioutlook, $params, $result);
   return $result;
 }
