@@ -55,7 +55,6 @@ function civicrm_api3_civi_outlook_createactivity($params) {
     $checkMultipleRecipients = explode(";", $params['email']);
     $finalresults = array();
     foreach($checkMultipleRecipients as $key => $recipientEmail) {
-      strpos($recipientEmail, "(") !== false;
       if (preg_match('!\(([^\)]+)\)!', $recipientEmail, $match)) {
         $recipientEmail = $match[1];
       }
@@ -85,12 +84,12 @@ function civicrm_api3_civi_outlook_createactivity($params) {
         $source_contact_id = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $_REQUEST['api_key'], 'id', 'api_key');
         $customActivityParams['source_contact_id'] = $source_contact_id;
       }
-      else {
-        $getId = civicrm_api3('Contact', 'get', array('sequential' => 1, 'api_key' => $params['api_key']));
-        if (CRM_Utils_Array::value('id', $getId)) {
-          $customActivityParams['source_contact_id'] = $getId['id'];
-        }
-      }
+//      else {
+//        $getId = civicrm_api3('Contact', 'get', array('sequential' => 1, 'api_key' => $params['api_key']));
+//        if (CRM_Utils_Array::value('id', $getId)) {
+//          $customActivityParams['source_contact_id'] = $getId['id'];
+//        }
+//      }
       if (CRM_Utils_Array::value('key', $params)) {
         $customActivityParams['key']= $params['key'];
       }
