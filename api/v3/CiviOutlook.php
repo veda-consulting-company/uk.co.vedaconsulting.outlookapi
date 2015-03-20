@@ -106,9 +106,6 @@ function civicrm_api3_civi_outlook_createactivity($params) {
       if (CRM_Utils_Array::value('email_body', $params)) {
         $customActivityParams['details'] = $params['email_body'];
       }
-      if (CRM_Utils_Array::value('target_contact_id', $params)) {
-        $customActivityParams['target_contact_id'] = $params['target_contact_id'];
-      }
       $result = outlook_civicrm_api3('Activity', 'create', $customActivityParams, 'CiviOutlook', 'createactivity', $params);
       $finalresults[] = $result;
     }
