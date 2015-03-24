@@ -62,34 +62,38 @@ function civicrm_api3_civi_outlook_createactivity($params) {
       $resultOutlookContact = civicrm_api3('Contact', 'get', $paramGetEmail );
 
       //If there are duplicate contacts return those contacts to Outlook
-      if (!empty($resultOutlookContact)) {
-        $countContact = count(array_keys($resultOutlookContact['values']));
-        if ($countContact > 1) {
-          return $resultOutlookContact;
+      if (!array_key_exists('ot_target_contact_id', $params)) {
+        if (!empty($resultOutlookContact)) {
+          $countContact = count(array_keys($resultOutlookContact['values']));
+          if ($countContact > 1) {
+            return $resultOutlookContact;
+          }
         }
       }
-      //Contact exists
-      if (array_key_exists('id', $resultOutlookContact) && CRM_Utils_Array::value('id', $resultOutlookContact) ){
-        $customActivityParams['target_contact_id'] = $resultOutlookContact['id'];
+
+      if (CRM_Utils_Array::value('ot_target_contact_id', $params)) {
+        $customActivityParams['target_contact_id'] = $params['ot_target_contact_id'];
       }
       else {
-        //Create new contact
-        $contact = array();
-        $contact['contact_type'] = "Individual";
-        $contact['email']=  $recipientEmail;
-        $contactCreate = civicrm_api3('Contact', 'create', $contact );
-        $customActivityParams['target_contact_id'] = $contactCreate['id'];
+        //Contact exists
+        if (array_key_exists('id', $resultOutlookContact) && CRM_Utils_Array::value('id', $resultOutlookContact) ){
+          //If outlook has sent a target contact id then create activity with that id
+          $customActivityParams['target_contact_id'] = $resultOutlookContact['id'];
+        }
+        else {
+          //Create new contact
+          $contact = array();
+          $contact['contact_type'] = "Individual";
+          $contact['email']=  $recipientEmail;
+          $contactCreate = civicrm_api3('Contact', 'create', $contact );
+          $customActivityParams['target_contact_id'] = $contactCreate['id'];
+        }
       }
+
       if ($_REQUEST['api_key']) {
         $source_contact_id = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $_REQUEST['api_key'], 'id', 'api_key');
         $customActivityParams['source_contact_id'] = $source_contact_id;
       }
-//      else {
-//        $getId = civicrm_api3('Contact', 'get', array('sequential' => 1, 'api_key' => $params['api_key']));
-//        if (CRM_Utils_Array::value('id', $getId)) {
-//          $customActivityParams['source_contact_id'] = $getId['id'];
-//        }
-//      }
       if (CRM_Utils_Array::value('key', $params)) {
         $customActivityParams['key']= $params['key'];
       }
@@ -107,12 +111,13 @@ function civicrm_api3_civi_outlook_createactivity($params) {
       }
       $result = outlook_civicrm_api3('Activity', 'create', $customActivityParams, 'CiviOutlook', 'createactivity', $params);
       $finalresults[] = $result;
+      unset($params['ot_target_contact_id']);
     }
     return civicrm_api3_create_success($finalresults, $params);
   }
 }
-function civicrm_api3_civi_outlook_insertauditlog($entity, $action, $request, $response) {
 
+function civicrm_api3_civi_outlook_insertauditlog($entity, $action, $request, $response) {
     if (empty($entity) || empty($action) || empty($request) || empty($response)) {
         return;
     }
@@ -130,6 +135,7 @@ function civicrm_api3_civi_outlook_insertauditlog($entity, $action, $request, $r
         return;
     }
 }
+
 function civicrm_api3_civi_outlook_getlables() {
   $customLablesParams = array(
     'civi_results_url' => ts('CiviCRM Resource URL'),
@@ -142,6 +148,7 @@ function civicrm_api3_civi_outlook_getlables() {
   );
   return $customLablesParams;
 }
+
 function outlook_civicrm_api3($entity, $action, $customParams, $entitycivioutlook, $actioncivioutlook, $params) {
   $result = civicrm_api3($entity, $action, $customParams);
   civicrm_api3_civi_outlook_insertauditlog($entitycivioutlook, $actioncivioutlook, $params, $result);
