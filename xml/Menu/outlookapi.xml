@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/auditlogs/view</path>
+    <page_callback>CRM_Outlookapi_Page_Outlook</page_callback>
+    <title>outlook auditlogs</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+</menu>
