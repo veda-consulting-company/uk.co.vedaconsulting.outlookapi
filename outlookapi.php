@@ -106,3 +106,4 @@ function outlookapi_civicrm_caseTypes(&$caseTypes) {
 function outlookapi_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
   _outlookapi_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
+
