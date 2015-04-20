@@ -153,8 +153,9 @@ function outlook_civicrm_api3($entity, $action, $customParams, $entitycivioutloo
 }
 
 function civicrm_api3_civi_outlook_userdefault($params) {
+  $params['email'] = trim($params['email']);
   if (preg_match('!\(([^\)]+)\)!', $params['email'], $match)) {
-    $params['email'] = trim($match[1]);
+    $params['email'] = $match[1];
   }
   $source_contact_id = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $params['contact_api_key'], 'id', 'api_key');
 
@@ -180,15 +181,16 @@ function civicrm_api3_civi_outlook_userdefault($params) {
 }
 
 function civicrm_api3_civi_outlook_getuserdefaults($params) {
+  $params['email'] = trim($params['email']);
   if (preg_match('!\(([^\)]+)\)!', $params['email'], $match)) {
-    $params['email'] = trim($match[1]);
+    $params['email'] = $match[1];
   }
   $source_contact_id = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $params['contact_api_key'], 'id', 'api_key');
   $selectQuery = "SELECT *
       FROM `outlook_civicrm_user_defaults`
       WHERE `source_contact_id` = $source_contact_id
       AND email = '{$params['email']}'";
-  
+
   $dao = CRM_Core_DAO::executeQuery($selectQuery);
   $values = array();
   while($dao->fetch()) {
