@@ -153,25 +153,54 @@ function outlook_civicrm_api3($entity, $action, $customParams, $entitycivioutloo
 }
 
 function civicrm_api3_civi_outlook_userdefault($params) {
-  $selectQuery = "SELECT `id` FROM `outlook_civicrm_setting` WHERE `setting_name` = 'remember_duplicate_contacts' AND `setting_value` = 1";
+  if (preg_match('!\(([^\)]+)\)!', $params['email'], $match)) {
+    $params['email'] = trim($match[1]);
+  }
+  $source_contact_id = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $params['contact_api_key'], 'id', 'api_key');
+
+  $selectQuery = "SELECT `id`
+      FROM `outlook_civicrm_setting`
+      WHERE `setting_name` = 'remember_duplicate_contacts'
+      AND `setting_value` = 1";
   $daoSettings = CRM_Core_DAO::executeQuery($selectQuery);
   $sid = '';
   while ($daoSettings->fetch()) {
     $sid = $daoSettings->id;
   }
   if (isset($sid) && !empty($sid)) {
-    $baoQuery = "INSERT INTO `outlook_civicrm_user_defaults` (`date_created`,`source_contact_id`, `dupe_target_contact_id`, `sid`) VALUES (now(), %1, %2, $sid)";
+    $baoQuery = "INSERT INTO `outlook_civicrm_user_defaults` (`date_created`,`source_contact_id`, `dupe_target_contact_id`, `email`, `sid`) VALUES (now(), %1, %2, %3, $sid)";
     $queryParams = array(
-      1 => array($params['source_contact_id'], 'Integer'),
+      1 => array($source_contact_id, 'Integer'),
       2 => array($params['dupe_target_contact_id'], 'Integer'),
+      3 => array($params['email'], 'String'),
     );
     $dao = CRM_Core_DAO::executeQuery($baoQuery, $queryParams);
   }
   return civicrm_api3_create_success($dao, $params);
 }
 
+function civicrm_api3_civi_outlook_getuserdefaults($params) {
+  if (preg_match('!\(([^\)]+)\)!', $params['email'], $match)) {
+    $params['email'] = trim($match[1]);
+  }
+  $source_contact_id = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $params['contact_api_key'], 'id', 'api_key');
+  $selectQuery = "SELECT *
+      FROM `outlook_civicrm_user_defaults`
+      WHERE `source_contact_id` = $source_contact_id
+      AND email = '{$params['email']}'";
+  
+  $dao = CRM_Core_DAO::executeQuery($selectQuery);
+  $values = array();
+  while($dao->fetch()) {
+    $values[] = array('dupe_target_contact_id' => $dao->dupe_target_contact_id);
+  }
+  return civicrm_api3_create_success($values, $params);
+}
+
 function civicrm_api3_civi_outlook_setting($params) {
-  $baoQuery = "UPDATE `outlook_civicrm_setting` SET setting_value = %2 , date_created = now() WHERE setting_name= %1";
+  $baoQuery = "UPDATE `outlook_civicrm_setting`
+      SET setting_value = %2 , date_created = now()
+      WHERE setting_name= %1";
   $queryParams = array(
     1 => array($params['setting_name'], 'String'),
     2 => array($params['setting_value'], 'Boolean'),
