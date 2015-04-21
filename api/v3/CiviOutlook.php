@@ -189,7 +189,7 @@ function civicrm_api3_civi_outlook_getuserdefaults($params) {
   $selectQuery = "SELECT *
       FROM `outlook_civicrm_user_defaults`
       WHERE `source_contact_id` = $source_contact_id
-      AND email = '{$params['email']}'";
+      AND email = '{$params['email']}' ORDER BY date_created desc limit 1";
 
   $dao = CRM_Core_DAO::executeQuery($selectQuery);
   $values = array();
