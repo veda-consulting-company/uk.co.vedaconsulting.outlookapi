@@ -210,3 +210,45 @@ function civicrm_api3_civi_outlook_setting($params) {
   $dao = CRM_Core_DAO::executeQuery($baoQuery, $queryParams);
   return civicrm_api3_create_success($dao, $params);
 }
+
+function civicrm_api3_civi_outlook_processattachments($params) {
+  //Get mime type of the attachment
+  $mimeType = CRM_Utils_Type::escape($_REQUEST['mimeType'], 'String');
+  $params['mime_type'] = $mimeType;
+
+  $config = CRM_Core_Config::singleton();
+  $directoryName = $config->customFileUploadDir;
+  CRM_Utils_File::createDir($directoryName);
+
+  //Process the below only if there is any attachment found
+  if (CRM_Utils_Array::value("name", $_FILES['file'])) {
+    $tmp_name = $_FILES['file']['tmp_name'];
+    $name = str_replace(' ', '_', $_FILES['file']['name']);
+    //Replace any spaces in name with underscore
+
+    $fileExtension = new SplFileInfo($name);
+    if ($fileExtension->getExtension()) {
+      $explodeName = explode(".".$fileExtension->getExtension(), $name);
+      $name = $explodeName[0]."_".md5($name).".".$fileExtension->getExtension();
+    }
+
+    $_FILES['file']['uri'] = $name;
+    move_uploaded_file($tmp_name, "$directoryName$name");
+
+    foreach ($_FILES['file'] as $key => $value) {
+      $params[$key] = $value;
+    }
+    $result = civicrm_api3('File', 'create', $params);
+    if (CRM_Utils_Array::value('id', $result)) {
+      $lastActivityIDQuery = "SELECT MAX( id ) FROM civicrm_activity";
+      $lastActivityID = CRM_Core_DAO::singleValueQuery($lastActivityIDQuery);
+
+      $entityFileDAO = new CRM_Core_DAO_EntityFile();
+      $entityFileDAO->entity_table = 'civicrm_activity';
+      $entityFileDAO->entity_id = $lastActivityID;
+      $entityFileDAO->file_id = $result['id'];
+      $entityFileDAO->save();
+    }
+  }
+  return civicrm_api3_create_success($dao, $params);
+}
