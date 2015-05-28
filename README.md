@@ -2,7 +2,7 @@
 
 <h4 style="box-sizing: border-box; font-family: Raleway, sans-serif; font-weight: 500; line-height: 1.1; color: rgb(34, 34, 34); margin-top: 10px; margin-bottom: 10px; font-size: 18px; background-color: rgb(255, 255, 255);"><strong style="box-sizing: border-box;">What is Outlook For CiviCRM?</strong></h4>
 
-<p style="box-sizing: border-box; margin: 0px 0px 10px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; background-color: rgb(255, 255, 255);">Outlook For CiviCRM is a plugin for MS Outlook, which allows Outlook to directly interact with CiviCRM. Once your account/credentials are verified with your CiviCRM account you are ready to start filing emails into CiviCRM, each email is stored as an Activity against contacts.</p>
+<p style="box-sizing: border-box; margin: 0px 0px 10px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; background-color: rgb(255, 255, 255);">Outlook CiviCRM integration allows Outlook to directly interact with CiviCRM. Once your account/credentials are verified with your CiviCRM account you are ready to start filing emails into CiviCRM, each email is stored as an Activity against contacts.</p>
 
 <p style="box-sizing: border-box; margin: 0px 0px 10px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; background-color: rgb(255, 255, 255);">&nbsp;</p>
 
@@ -22,9 +22,6 @@
 <p>&nbsp;</p>
 
 <h3 style="box-sizing: border-box; font-family: Raleway, sans-serif; line-height: 1.1; color: rgb(34, 34, 34); margin-top: 20px; margin-bottom: 10px; font-size: 24px;"><strong style="box-sizing: border-box;">Prerequisites:</strong></h3>
-
-<p>&nbsp;</p>
-
 <ol style="box-sizing: border-box; margin-top: 0px; margin-bottom: 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">
     <li>Download and install extension for CiviCRM - https://github.com/veda-consulting/uk.co.vedaconsulting.outlookapi</li>
     <li>Download plugin for outlook - <a href="http://www.vedaconsulting.co.uk/sites/default/files/veda-uploads/uploads/2015/OutlookForCiviCRM/OutlookForCiviCRM.zip">OutlookForCiviCRM</a></li>
@@ -64,6 +61,24 @@ Press Next button.</p>
    </li>
    <br/>
    <li><b>Step 3:</b>  Enter url, api key and site key. Follow the help text instructions to fill in these fields and hit Connect button</li>
+   <ul>
+<li><b>Url</b> - Can be found on Administer >> System Settings >> Resource URLs screen in CiviCRM.</li>
+<li><b>Site key</b> - Can be found in the civicrm.settings.php file labelled CIVICRM_SITE_KEY.</li>
+<li><b>Api key</b> - You will need to enter an API key that will be used by plugin to update CiviCRM contacts and / or file activities. In CiviCRM, pickup and create api key for a contact who can login and has permission to update other contacts (can also be admin user). There are two methods of creating an API key in CiviCRM:</li>
+</ul>
+<ul><b>A. Using Manual Method -</b>
+  <li>Enter the key (usually 32 digit random alphanumeric string) directly in the database table civicrm_contact into the field api_key using your database tool. That would normally be phpmyadmin, MySQL Workbench or something like that.</li> 
+  <li>If you are using Drupal, you may want to check for sure which CiviCRM contact ID you need to modify - to make sure proper Drupal user gets the permissions. To find out Drupal user ID match to CiviCRM contact ID, check the table civicrm_uf_match</li>
+  <li>If you know the ID of the contact you want to update, the query would look like this: UPDATE civicrm_contact SET api_key = "your_key_you_made_up" WHERE id = "id_of_the_contact_you_want_to_update"</li>
+  <li>Remember that this user has to have "Access AJAX API" permission and possibly others (see API security other permissions - http://wiki.civicrm.org/confluence/display/CRMDOC/API+Security)</li>
+</ul>
+<ul><b>B. Using API Key Extension - </b>
+<li>There is an extension available called API Key at https://civicrm.org/extensions/api-key that makes the setting of API keys for users much easier.</li>
+<li>Once installed, an 'API Key' tab will be available on contact screens for which you are authorized to manage the API key for this contact. You are authorized either if the contact if yourself, or if you are an administrator with the 'edit all contacts' permission.</li>
+<li>You can then add an API key, Edit an exiting API key (with either manual input or an auto-generate feature) or Delete an API key (by setting it's value to blank).</li>
+Once api key is created in CiviCRM, choose the same to specify for the outlook plugin.
+</ul>
+
    <br/>
    <li>
       <b>Step 4:</b> If the above credentials are correctly verified, you should see the following. You are now ready to file emails in CiviCRM
