@@ -2,14 +2,14 @@
 
 <h4 style="box-sizing: border-box; font-family: Raleway, sans-serif; font-weight: 500; line-height: 1.1; color: rgb(34, 34, 34); margin-top: 10px; margin-bottom: 10px; font-size: 18px; background-color: rgb(255, 255, 255);"><strong style="box-sizing: border-box;">What is Outlook For CiviCRM?</strong></h4>
 
-<p style="box-sizing: border-box; margin: 0px 0px 10px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; background-color: rgb(255, 255, 255);">Outlook For CiviCRM is a plugin for MS Outlook, which allows you to directly interact with CiviCRM. Once your account/credentials are verified with your CiviCRM account you are ready to start filing emails into CiviCRM, each email is stored as an Activity against contacts.</p>
+<p style="box-sizing: border-box; margin: 0px 0px 10px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; background-color: rgb(255, 255, 255);">Outlook For CiviCRM is a plugin for MS Outlook, which allows Outlook to directly interact with CiviCRM. Once your account/credentials are verified with your CiviCRM account you are ready to start filing emails into CiviCRM, each email is stored as an Activity against contacts.</p>
 
 <p style="box-sizing: border-box; margin: 0px 0px 10px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; background-color: rgb(255, 255, 255);">&nbsp;</p>
 
 <h4 style="box-sizing: border-box; font-family: Raleway, sans-serif; font-weight: 500; line-height: 1.1; color: rgb(34, 34, 34); margin-top: 10px; margin-bottom: 10px; font-size: 18px; background-color: rgb(255, 255, 255);"><strong style="box-sizing: border-box;">Features:</strong></h4>
 
 <ol style="box-sizing: border-box; margin-top: 0px; margin-bottom: 10px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; background-color: rgb(255, 255, 255);">
-	<li style="box-sizing: border-box;">Ability to record emails against contacts while sending</li>
+	<li style="box-sizing: border-box;">Record emails from Outlook against CiviCRM contacts</li>
 	<li style="box-sizing: border-box;">Record emails against contacts from any mailbox</li>
 	<li style="box-sizing: border-box;">Uses email address deduplication to attach emails to the correct contact including creation of a new contact if they don&#39;t exist.</li>
 	<li style="box-sizing: border-box;">Prompts for duplicate contacts so that user can select which ones he wants to create the activity with.</li>
@@ -26,58 +26,30 @@
 <p>&nbsp;</p>
 
 <ol style="box-sizing: border-box; margin-top: 0px; margin-bottom: 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">
-	<li style="box-sizing: border-box;">uk.co.vedaconsulting.outlookapi extension should be installed in your CiviCRM</li>
+    <li>Download and install extension for CiviCRM - https://github.com/veda-consulting/uk.co.vedaconsulting.outlookapi</li>
+    <li>Download plugin for outlook - <a href="http://www.vedaconsulting.co.uk/sites/default/files/veda-uploads/uploads/2015/OutlookForCiviCRM/OutlookForCiviCRM.zip">OutlookForCiviCRM</a></li>
 </ol>
 
 <p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">&nbsp;</p>
 
-<h3 style="box-sizing: border-box; font-family: Raleway, sans-serif; line-height: 1.1; color: rgb(34, 34, 34); margin-top: 20px; margin-bottom: 10px; font-size: 24px;"><strong style="box-sizing: border-box;">Installation Guide To setup Outlook For CiviCRM:</strong></h3>
-
-<p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">&nbsp;</p>
-
-<h4 style="box-sizing: border-box; font-family: Raleway, sans-serif; line-height: 1.1; color: rgb(34, 34, 34); margin-top: 10px; margin-bottom: 10px; font-size: 18px;"><strong style="box-sizing: border-box;">Steps:</strong></h4>
+<h3 style="box-sizing: border-box; font-family: Raleway, sans-serif; line-height: 1.1; color: rgb(34, 34, 34); margin-top: 20px; margin-bottom: 10px; font-size: 24px;"><strong style="box-sizing: border-box;">Installation Steps for Outlook Plugin:</strong></h3>
 
 <p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">1. Extract your OutlookForCiviCRM.zip folder</p>
-
-<p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">2. Navigate to path 1.1/, and double click on OutLookForCiviCRMSetup(1.1).msi</p>
-
+<p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">2. Locate OutLookForCiviCRMSetup(1.1).msi, and double click to initiate installation</p>
 <p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">3. Installation Step 1:</p>
-
 <p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">&nbsp;<img alt="" height="417px" src="http://www.vedaconsulting.co.uk/sites/default/files/veda-uploads/uploads/2015/OutlookForCiviCRM/Installation_step_1.png" style="box-sizing: border-box; border: 0px; vertical-align: middle;" width="513px" /><br style="box-sizing: border-box;" />
-<br style="box-sizing: border-box;" />
 (Press next button on this screen)</p>
-
-<p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">&nbsp;</p>
-
 <p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">4. Installation Step 2:</p>
-
 <p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">&nbsp;<img alt="" height="422px" src="http://www.vedaconsulting.co.uk/sites/default/files/veda-uploads/uploads/2015/OutlookForCiviCRM//Installation_Step_2.png" style="box-sizing: border-box; border: 0px; vertical-align: middle;" width="509px" /><br style="box-sizing: border-box;" />
-<br style="box-sizing: border-box;" />
 To install it to different directory, press browse and select the same.<br style="box-sizing: border-box;" />
-<br style="box-sizing: border-box;" />
 Press Next button.</p>
-
-<p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">&nbsp;</p>
-
 <p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">5. Installation Step 3:</p>
-
 <p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">&nbsp;<img alt="" height="417px" src="http://www.vedaconsulting.co.uk/sites/default/files/veda-uploads/uploads/2015/OutlookForCiviCRM/Installation_Step_3.png" style="box-sizing: border-box; border: 0px; vertical-align: middle;" width="515px" /><br style="box-sizing: border-box;" />
-<br style="box-sizing: border-box;" />
 Press Next button.</p>
-
-<p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">&nbsp;</p>
-
 <p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">6. And that&rsquo;s it, that will install OutlookForCiviCRM on your system.</p>
-
 <p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;">Now when you open Outlook you should be able to see a tab on the main menu called &ldquo;OutlookForCiviCRM&rdquo;.</p>
 
-<p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;"><strong style="box-sizing: border-box;"><a href="https://github.com/veda-consulting/uk.co.vedaconsulting.outlookapi" target="_BLANK" style="box-sizing: border-box; color: rgb(18, 152, 237); text-decoration: none; background: transparent;">Download uk.co.vedaconsulting.outlookapi extension</a></strong></p>
-
-<p style="box-sizing: border-box; margin: 0px 0px 10px; color: rgb(0, 0, 0); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px;"><strong style="box-sizing: border-box;"><a href="http://www.vedaconsulting.co.uk/sites/default/files/veda-uploads/uploads/2015/OutlookForCiviCRM/OutlookForCiviCRM.zip" style="box-sizing: border-box; color: rgb(18, 152, 237); text-decoration: none; background: transparent;">Download OutlookForCiviCRM software</a></strong></p>
-
-<p>&nbsp;</p>
-<br/>
-<h2>Post Installation Steps:</h2>
+<h3><b>Post Installation Configuration:</b></h3>
 <ul>
    <li>
       <b>Step 1:</b> Open Outlook 2013, you should be able to see OutLookForCiviCRM tab on the top.
