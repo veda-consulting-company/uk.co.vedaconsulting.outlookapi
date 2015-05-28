@@ -84,13 +84,11 @@ Once api key is created in CiviCRM, choose the same to specify for the outlook p
       <b>Step 4:</b> If the above credentials are correctly verified, you should see the following. You are now ready to file emails in CiviCRM
       <p><img src="http://www.vedaconsulting.co.uk/sites/default/files/veda-uploads/uploads/2015/OutlookForCiviCRM/1.1/Step-3.png" alt="Step - 2" /></p>
    </li>
-   <br/>
-   <p>
-      Additional Information on above point: Now the question would be, what are those two settings onto the right?
-      <p>Prompt for All emails?: If this setting is enabled - While sending emails, you would always be asked whether you want to record this email in CiviCRM (A small pop up confirmation box would appear). If you don't want to be asked every time and just want to record every email you send, turn this setting off<br/>
-      </p>
-      <p>Remember Duplicate Contacts: If this setting is enabled - For eg: The person to whom you are sending an email might already exist in Civi or might have duplicate contacts. In that case you would be shown a box with the list of duplicate contacts ( last name, first name:: email address). If you chose certain contact, OutlookForCiviCRM would remember this and next time(while sending an email) if the same contact is found, it will automatically create an activity with the last chosen contact. No preferences would be saved if turned off.
-      </p>
+      <p><b>Additional settings:</b></p>
+      <ul>
+          <li><b>Prompt for All emails?:</b> If this setting is enabled - While sending emails, you would always be asked whether you want to record this email in CiviCRM (A small pop up confirmation box would appear). If you don't want to be asked every time and just want to record every email you send, turn this setting off</li>
+           <li><b>Remember Duplicate Contacts:</b> If this setting is enabled - For eg: The person to whom you are sending an email might already exist in Civi or might have duplicate contacts. In that case you would be shown a box with the list of duplicate contacts ( last name, first name:: email address). If you chose certain contact, OutlookForCiviCRM would remember this and next time(while sending an email) if the same contact is found, it will automatically create an activity with the last chosen contact. No preferences would be saved if turned off.</li>
+      </ul>
       <p><img src="http://www.vedaconsulting.co.uk/sites/default/files/veda-uploads/uploads/2015/OutlookForCiviCRM/1.1/Step-5.png" alt="" /></p>
       <p></p>
    </p>
