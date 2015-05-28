@@ -2,7 +2,7 @@
 
 <h4 style="box-sizing: border-box; font-family: Raleway, sans-serif; font-weight: 500; line-height: 1.1; color: rgb(34, 34, 34); margin-top: 10px; margin-bottom: 10px; font-size: 18px; background-color: rgb(255, 255, 255);"><strong style="box-sizing: border-box;">What is Outlook For CiviCRM?</strong></h4>
 
-<p style="box-sizing: border-box; margin: 0px 0px 10px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; background-color: rgb(255, 255, 255);">Outlook CiviCRM integration allows Outlook to directly interact with CiviCRM using REST apis. Once the Outlook plugin has verified account/credentials for CiviCRM, you are ready to start filing emails into CiviCRM, each email is stored as an Activity against contacts.</p>
+<p style="box-sizing: border-box; margin: 0px 0px 10px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; background-color: rgb(255, 255, 255);">Outlook CiviCRM integration, allows Outlook to directly interact with CiviCRM using REST apis. Emails from Outlook are filed into CiviCRM as activities against the contacts. An Outlook plugin and this CiviCRM extension makes the interaction possible.</p>
 
 <p style="box-sizing: border-box; margin: 0px 0px 10px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; background-color: rgb(255, 255, 255);">&nbsp;</p>
 
