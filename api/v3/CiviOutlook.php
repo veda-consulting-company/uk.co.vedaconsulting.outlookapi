@@ -111,7 +111,17 @@ function civicrm_api3_civi_outlook_createactivity($params) {
       $finalresults[] = $result;
       unset($params['ot_target_contact_id']);
   }
-  return civicrm_api3_create_success($finalresults, $params);
+  $catchAPIResult = civicrm_api3_create_success($finalresults, $params);
+  $apiResult = array();
+  $apiResult = $catchAPIResult['values'][0]['values'][0];
+
+  //Handling this because XML Reader in outlook doesn't parse <0> as valid tag
+  if(!empty($apiResult)) {
+    return $apiResult;
+  }
+  else {
+    return civicrm_api3_create_success($finalresults, $params);
+  }
 }
 
 function civicrm_api3_civi_outlook_insertauditlog($entity, $action, $request, $response) {
@@ -240,8 +250,9 @@ function civicrm_api3_civi_outlook_processattachments($params) {
     }
     $result = civicrm_api3('File', 'create', $params);
     if (CRM_Utils_Array::value('id', $result)) {
-      $lastActivityIDQuery = "SELECT MAX( id ) FROM civicrm_activity";
-      $lastActivityID = CRM_Core_DAO::singleValueQuery($lastActivityIDQuery);
+      if(CRM_Utils_Array::value('activityID', $params)) {
+        $lastActivityID = $params['activityID'];
+      }
 
       $entityFileDAO = new CRM_Core_DAO_EntityFile();
       $entityFileDAO->entity_table = 'civicrm_activity';
