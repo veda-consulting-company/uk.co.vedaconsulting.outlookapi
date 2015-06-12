@@ -58,9 +58,18 @@ function civicrm_api3_civi_outlook_createactivity($params) {
         $recipientEmail = $match[1];
       }
       $paramGetEmail['email']= $recipientEmail;
-      $resultOutlookContact = civicrm_api3('Contact', 'get', $paramGetEmail );
+      $resultOutlookContact = civicrm_api3('Contact', 'get', $paramGetEmail);
 
-      //If there are duplicate contacts return those contacts to Outlook
+      $filteredArray = array();
+      foreach ($resultOutlookContact['values'] as $key => $details) {
+        $filteredArray[$key][contact_id] = $details['contact_id'];
+        $filteredArray[$key][contact_type] = $details['contact_type'];
+        $filteredArray[$key][sort_name] = $details['sort_name'];
+        $filteredArray[$key][email] = $details['email'];
+      }
+      $resultOutlookContact[values] = $filteredArray;
+
+    //If there are duplicate contacts return those contacts to Outlook
       if (!array_key_exists('ot_target_contact_id', $params)) {
         if (!empty($resultOutlookContact)) {
           $countContact = count(array_keys($resultOutlookContact['values']));
