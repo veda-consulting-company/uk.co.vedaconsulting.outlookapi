@@ -113,15 +113,15 @@ function outlookapi_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
 function outlookapi_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {
   //Native APIs
   $permissions['domain'] = array('get' => array('access CiviCRM', 'access AJAX API'));
-  $permissions['activity'] = array('create' => array('access CiviCRM', 'access AJAX API'));
+  $permissions['activity'] = array('create' => array('access CiviCRM', 'access AJAX API', 'add contacts', 'view all contacts', 'view all activities', 'access uploaded files'));
 
   //Custom APIs
   $permissions['civi_outlook']['getdomain'] = array('access CiviCRM','access AJAX API');
-  $permissions['civi_outlook']['createactivity'] = array('access CiviCRM', 'access AJAX API');
+  $permissions['civi_outlook']['createactivity'] = array('access CiviCRM', 'access AJAX API', 'add contacts', 'view all contacts', 'view all activities', 'access uploaded files');
   $permissions['civi_outlook']['insertauditlog'] = array('access CiviCRM', 'access AJAX API');
   $permissions['civi_outlook']['getlables'] = array('access CiviCRM', 'access AJAX API');
   $permissions['civi_outlook']['userdefault'] = array('access CiviCRM', 'access AJAX API');
   $permissions['civi_outlook']['getuserdefaults'] = array('access CiviCRM', 'access AJAX API');
   $permissions['civi_outlook']['setting'] = array('access CiviCRM', 'access AJAX API');
-  $permissions['civi_outlook']['processattachments'] = array('access CiviCRM', 'access AJAX API');
+  $permissions['civi_outlook']['processattachments'] = array('access CiviCRM', 'access AJAX API', 'access uploaded files');
 }
