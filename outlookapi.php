@@ -107,3 +107,10 @@ function outlookapi_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
   _outlookapi_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
+/**
+ *  alterAPIPermissions() hook allows you to change the permissions checked when doing API 3 calls.
+ */
+function outlookapi_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {
+   $permissions['domain'] = array('get' => array('access CiviCRM', 'access AJAX API'));
+   $permissions['activity'] = array('create' => array('access CiviCRM', 'access AJAX API'));
+}
