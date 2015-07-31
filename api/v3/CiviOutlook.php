@@ -32,7 +32,10 @@ function civicrm_api3_civi_outlook_getdomain($params) {
     $customDomainParams['api_key'] = $params['api_key'];
   }
   $result = outlook_civicrm_api3('Domain', 'get', $customDomainParams, 'CiviOutlook', 'getdomain', $params);
-  return $result;
+  if($result['is_error'] == 0) {
+    $finalResult = array('success' => 'Authenticated successfully');
+    return $finalResult;
+  }
 }
 
 /**
