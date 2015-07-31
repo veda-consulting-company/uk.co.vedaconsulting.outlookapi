@@ -111,6 +111,17 @@ function outlookapi_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
  *  alterAPIPermissions() hook allows you to change the permissions checked when doing API 3 calls.
  */
 function outlookapi_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {
-   $permissions['domain'] = array('get' => array('access CiviCRM', 'access AJAX API'));
-   $permissions['activity'] = array('create' => array('access CiviCRM', 'access AJAX API'));
+  //Native APIs
+  $permissions['domain'] = array('get' => array('access CiviCRM', 'access AJAX API'));
+  $permissions['activity'] = array('create' => array('access CiviCRM', 'access AJAX API'));
+
+  //Custom APIs
+  $permissions['civi_outlook'] = array('getdomain' => array('access CiviCRM', 'access AJAX API'),);
+  $permissions['civi_outlook'] = array('createactivity' => array('access CiviCRM', 'access AJAX API'));
+  $permissions['civi_outlook'] = array('insertauditlog' => array('access CiviCRM', 'access AJAX API'));
+  $permissions['civi_outlook'] = array('getlables' => array('access CiviCRM', 'access AJAX API'));
+  $permissions['civi_outlook'] = array('userdefault' => array('access CiviCRM', 'access AJAX API'));
+  $permissions['civi_outlook'] = array('getuserdefaults' => array('access CiviCRM', 'access AJAX API'));
+  $permissions['civi_outlook'] = array('setting' => array('access CiviCRM', 'access AJAX API'));
+  $permissions['civi_outlook'] = array('processattachments' => array('access CiviCRM', 'access AJAX API'));
 }
