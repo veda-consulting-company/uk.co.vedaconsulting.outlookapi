@@ -90,6 +90,11 @@ function civicrm_api3_civi_outlook_createactivity($params) {
         if (array_key_exists('id', $resultOutlookContact) && CRM_Utils_Array::value('id', $resultOutlookContact) ){
           //If outlook has sent a target contact id then create activity with that id
           $customActivityParams['target_contact_id'] = $resultOutlookContact['id'];
+          if (CRM_Utils_Array::value('isCiviCase', $params)) {
+            $singleContactExists = array();
+            $singleContactExists['singleContactExists'] = $resultOutlookContact['id'];
+            return $singleContactExists;
+          }
         }
         else {
           //Create new contact
@@ -97,8 +102,17 @@ function civicrm_api3_civi_outlook_createactivity($params) {
           $contact['contact_type'] = "Individual";
           $contact['email']=  $recipientEmail;
           $contactCreate = civicrm_api3('Contact', 'create', $contact );
+          if (CRM_Utils_Array::value('isCiviCase', $params)) {
+            $singleContactCreated = array();
+            $singleContactCreated['singleContactCreated'] = $contactCreate['id'];
+            return $singleContactCreated;
+          }
           $customActivityParams['target_contact_id'] = $contactCreate['id'];
         }
+      }
+      if(CRM_Utils_Array::value('case_id', $params)) {
+        $customActivityParams['case_id'] = $params['case_id'];
+        //$customActivityParams['assignee_id'] = $params['ot_target_contact_id'];
       }
       if ($_REQUEST['api_key']) {
         $source_contact_id = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $_REQUEST['api_key'], 'id', 'api_key');
@@ -136,6 +150,14 @@ function civicrm_api3_civi_outlook_createactivity($params) {
   }
 }
 
+/**
+ * Function to capture request/response params from Outlook
+ * @param type $entity
+ * @param type $action
+ * @param type $request
+ * @param type $response
+ * @return type
+ */
 function civicrm_api3_civi_outlook_insertauditlog($entity, $action, $request, $response) {
     if (empty($entity) || empty($action) || empty($request) || empty($response)) {
         return;
@@ -155,6 +177,9 @@ function civicrm_api3_civi_outlook_insertauditlog($entity, $action, $request, $r
     }
 }
 
+/**
+ * Get all labels
+ */
 function civicrm_api3_civi_outlook_getlables() {
   $customLablesParams = array(
     'civi_results_url' => ts('CiviCRM Resource URL'),
@@ -168,12 +193,18 @@ function civicrm_api3_civi_outlook_getlables() {
   return $customLablesParams;
 }
 
+/*
+ * Wrapper for logging
+ */
 function outlook_civicrm_api3($entity, $action, $customParams, $entitycivioutlook, $actioncivioutlook, $params) {
   $result = civicrm_api3($entity, $action, $customParams);
   civicrm_api3_civi_outlook_insertauditlog($entitycivioutlook, $actioncivioutlook, $params, $result);
   return $result;
 }
 
+/*
+ * Outlook Settings - Set user defaults
+ */
 function civicrm_api3_civi_outlook_userdefault($params) {
   $params['email'] = trim($params['email']);
   if (preg_match('!\(([^\)]+)\)!', $params['email'], $match)) {
@@ -202,6 +233,9 @@ function civicrm_api3_civi_outlook_userdefault($params) {
   return civicrm_api3_create_success($dao, $params);
 }
 
+/*
+ * Outlook settings - Get user defaults
+ */
 function civicrm_api3_civi_outlook_getuserdefaults($params) {
   $params['email'] = trim($params['email']);
   if (preg_match('!\(([^\)]+)\)!', $params['email'], $match)) {
@@ -221,6 +255,9 @@ function civicrm_api3_civi_outlook_getuserdefaults($params) {
   return civicrm_api3_create_success($values, $params);
 }
 
+/*
+ * Outlook Main Settings
+ */
 function civicrm_api3_civi_outlook_setting($params) {
   $baoQuery = "UPDATE `outlook_civicrm_setting`
       SET setting_value = %2 , date_created = now()
@@ -233,6 +270,9 @@ function civicrm_api3_civi_outlook_setting($params) {
   return civicrm_api3_create_success($dao, $params);
 }
 
+/*
+ * Process attachment for Activities
+ */
 function civicrm_api3_civi_outlook_processattachments($params) {
   //Get mime type of the attachment
   $mimeType = CRM_Utils_Type::escape($_REQUEST['mimeType'], 'String');
@@ -273,5 +313,101 @@ function civicrm_api3_civi_outlook_processattachments($params) {
       $entityFileDAO->save();
     }
   }
-  return civicrm_api3_create_success($dao, $params);
+  return civicrm_api3_create_success($entityFileDAO, $params);
+}
+
+/*
+ * Get list of Civi Cases
+ */
+function civicrm_api3_civi_outlook_getcivicases($params) {
+  $customCiviParams = array(
+  'sequential' => 1,
+  );
+  if (isset($params['contact_id']) && !empty($params['contact_id'])) {
+    $customCiviParams['contact_id'] = $params['contact_id'];
+  }
+  $result = outlook_civicrm_api3('Case', 'get', $customCiviParams, 'CiviOutlook', 'getcivicases', $params);
+  $finalArray = array();
+
+  foreach($result as $key => $value) {
+    foreach($value as $k => $v) {
+      $finalArray['case'.$k]  = $v;
+    }
+  }
+  return civicrm_api3_create_success($finalArray, $params);
+}
+
+/*
+ *  Get Civi Case Types
+ */
+function civicrm_api3_civi_outlook_getcivicasetypes($params) {
+  $caseTypes = CRM_Case_PseudoConstant::caseType('title', FALSE);
+  $result = array(
+  'sequential' => 1,
+  );
+  if (CRM_Utils_Array::value("case_type_name", $params)) {
+    $result['id'] = array_search($params['case_type_name'], $caseTypes);
+  }
+  else {
+    $result = $caseTypes;
+  }
+  return $result;
+}
+
+/*
+ * Get Civi Case Status
+ */
+function civicrm_api3_civi_outlook_getcivicasestatus($params) {
+  $caseStatuses = CRM_Case_PseudoConstant::caseStatus('label', FALSE);
+  $result = array(
+  'sequential' => 1,
+  );
+  if (CRM_Utils_Array::value("case_status_name", $params)) {
+    $result['id'] = array_search($params['case_status_name'], $caseStatuses);
+  }
+  else {
+    $result = $caseStatuses;
+  }
+  return $result;
+}
+
+
+/*
+ * Create new Civi Case
+ */
+function civicrm_api3_civi_outlook_createnewcase($params) {
+  $customCiviParams = array(
+  'sequential' => 1,
+  );
+  $caseTypes = CRM_Case_PseudoConstant::caseType('title', FALSE);
+  $caseStatuses = CRM_Case_PseudoConstant::caseStatus('label', FALSE);
+
+  if(CRM_Utils_Array::value("case_type_name", $params)) {
+    $customCiviParams['case_type_id'] = array_search($params['case_type_name'], $caseTypes);
+  }
+  if(CRM_Utils_Array::value("details", $params)) {
+    $customCiviParams['details'] = $params['details'];
+  }
+  if(CRM_Utils_Array::value("subject", $params)) {
+    $customCiviParams['subject'] = $params['subject'];
+  }
+  if(CRM_Utils_Array::value("start_date", $params)) {
+    $customCiviParams['start_date'] = $params['start_date'];
+  }
+  if(CRM_Utils_Array::value("status_name", $params)) {
+    $customCiviParams['status_id'] = array_search($params['status_name'], $caseStatuses);
+  }
+  if(CRM_Utils_Array::value("contact_id", $params)) {
+    $customCiviParams['contact_id'] = $params['contact_id'];
+  }
+
+  $result = outlook_civicrm_api3('Case', 'create', $customCiviParams, 'CiviOutlook', 'createnewcase', $params);
+  $finalArray = array();
+
+  foreach($result as $key => $value) {
+    foreach($value as $k => $v) {
+      $finalArray['case_'.$k]  = $v;
+    }
+  }
+  return civicrm_api3_create_success($finalArray, $params);
 }
