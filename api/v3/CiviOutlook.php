@@ -48,6 +48,9 @@ function civicrm_api3_civi_outlook_getdomain($params) {
  * @throws API_Exception
  */
 function civicrm_api3_civi_outlook_createactivity($params) {
+  $activityOptions = CRM_Core_PseudoConstant::activityType(TRUE, TRUE, FALSE, 'label', TRUE);
+  asort($activityOptions);
+
   $customActivityParams = array(
   'sequential' => 1,
   );
@@ -112,7 +115,6 @@ function civicrm_api3_civi_outlook_createactivity($params) {
       }
       if(CRM_Utils_Array::value('case_id', $params)) {
         $customActivityParams['case_id'] = $params['case_id'];
-        //$customActivityParams['assignee_id'] = $params['ot_target_contact_id'];
       }
       if ($_REQUEST['api_key']) {
         $source_contact_id = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $_REQUEST['api_key'], 'id', 'api_key');
@@ -125,7 +127,12 @@ function civicrm_api3_civi_outlook_createactivity($params) {
         $customActivityParams['api_key'] = $params['api_key'];
       }
       if (CRM_Utils_Array::value('activity_type_id', $params)) {
-        $customActivityParams['activity_type_id'] = $params['activity_type_id'];
+        if (CRM_Utils_Array::value('activity_type', $params)) {
+          $customActivityParams['activity_type_id'] = array_search($params['activity_type'], $activityOptions);
+        }
+        else {
+          $customActivityParams['activity_type_id'] = $params['activity_type_id'];
+        }
       }
       if (CRM_Utils_Array::value('subject', $params)) {
         $customActivityParams['subject'] = $params['subject'];
@@ -331,7 +338,15 @@ function civicrm_api3_civi_outlook_getcivicases($params) {
 
   foreach($result as $key => $value) {
     foreach($value as $k => $v) {
+      $v['start_date'] = date("jS F, Y", strtotime($v['start_date']));
       $finalArray['case'.$k]  = $v;
+      /*
+       * Hack to show only the active cases for the contact i.e show cases only for which is_deleted = 0
+       * This had to be done since the native API returns the deleted cases for the contact along with the other active cases
+       */
+      if ($v['is_deleted'] == 1) {
+        unset($finalArray['case'.$k]);
+      }
     }
   }
   return civicrm_api3_create_success($finalArray, $params);
@@ -342,9 +357,7 @@ function civicrm_api3_civi_outlook_getcivicases($params) {
  */
 function civicrm_api3_civi_outlook_getcivicasetypes($params) {
   $caseTypes = CRM_Case_PseudoConstant::caseType('title', FALSE);
-  $result = array(
-  'sequential' => 1,
-  );
+  $result = array();
   if (CRM_Utils_Array::value("case_type_name", $params)) {
     $result['id'] = array_search($params['case_type_name'], $caseTypes);
   }
@@ -359,9 +372,7 @@ function civicrm_api3_civi_outlook_getcivicasetypes($params) {
  */
 function civicrm_api3_civi_outlook_getcivicasestatus($params) {
   $caseStatuses = CRM_Case_PseudoConstant::caseStatus('label', FALSE);
-  $result = array(
-  'sequential' => 1,
-  );
+  $result = array();
   if (CRM_Utils_Array::value("case_status_name", $params)) {
     $result['id'] = array_search($params['case_status_name'], $caseStatuses);
   }
@@ -382,6 +393,14 @@ function civicrm_api3_civi_outlook_createnewcase($params) {
   $caseTypes = CRM_Case_PseudoConstant::caseType('title', FALSE);
   $caseStatuses = CRM_Case_PseudoConstant::caseStatus('label', FALSE);
 
+  /**
+   * Hack for the error - "creator id is not of type int" Native API throws this error
+   * http://civicrm.stackexchange.com/questions/2727/why-doesnt-creating-a-case-from-api-work
+   */
+  if (CRM_Utils_Array::value("api_key", $_REQUEST)) {
+    $source_contact_id = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $_REQUEST['api_key'], 'id', 'api_key');
+    $params['creator_id'] = $customCiviParams['creator_id'] = intval($source_contact_id);
+  }
   if(CRM_Utils_Array::value("case_type_name", $params)) {
     $customCiviParams['case_type_id'] = array_search($params['case_type_name'], $caseTypes);
   }
@@ -411,3 +430,29 @@ function civicrm_api3_civi_outlook_createnewcase($params) {
   }
   return civicrm_api3_create_success($finalArray, $params);
 }
+
+/*
+ * Get Case Activity Types
+ */
+function civicrm_api3_civi_outlook_getcaseactivitytype($params) {
+  $activityOptions = CRM_Case_PseudoConstant::caseActivityType();
+  $result = array();
+  foreach ($activityOptions as $key => $values) {
+    $result[] = $key;
+  }
+  return $result;
+}
+
+/**
+ * Get Contact Activity Types
+ */
+function civicrm_api3_civi_outlook_getactivitytype($params) {
+  $result = array();
+  $activityContact = CRM_Core_PseudoConstant::activityType(FALSE);
+  if (!CRM_Utils_Array::value("Email", $activityContact)) {
+    $activityContact[] = "Email";
+  }
+  $result = $activityContact;
+  return $result;
+}
+
