@@ -93,11 +93,9 @@ function civicrm_api3_civi_outlook_createactivity($params) {
         if (array_key_exists('id', $resultOutlookContact) && CRM_Utils_Array::value('id', $resultOutlookContact) ){
           //If outlook has sent a target contact id then create activity with that id
           $customActivityParams['target_contact_id'] = $resultOutlookContact['id'];
-          if (CRM_Utils_Array::value('isCiviCase', $params)) {
-            $singleContactExists = array();
-            $singleContactExists['singleContactExists'] = $resultOutlookContact['id'];
-            return $singleContactExists;
-          }
+          $singleContactExists = array();
+          $singleContactExists['singleContactExists'] = $resultOutlookContact['id'];
+          return $singleContactExists;
         }
         else {
           //Create new contact
@@ -105,12 +103,9 @@ function civicrm_api3_civi_outlook_createactivity($params) {
           $contact['contact_type'] = "Individual";
           $contact['email']=  $recipientEmail;
           $contactCreate = civicrm_api3('Contact', 'create', $contact );
-          if (CRM_Utils_Array::value('isCiviCase', $params)) {
-            $singleContactCreated = array();
-            $singleContactCreated['singleContactCreated'] = $contactCreate['id'];
-            return $singleContactCreated;
-          }
-          $customActivityParams['target_contact_id'] = $contactCreate['id'];
+          $singleContactCreated = array();
+          $singleContactCreated['singleContactCreated'] = $contactCreate['id'];
+          return $singleContactCreated;
         }
       }
       if(CRM_Utils_Array::value('case_id', $params)) {
