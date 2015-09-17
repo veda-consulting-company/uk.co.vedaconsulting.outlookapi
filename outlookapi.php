@@ -126,7 +126,6 @@ function outlookapi_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
   $permissions['civi_outlook']['processattachments'] = array('access CiviCRM', 'access AJAX API', 'access uploaded files');
   $permissions['civi_outlook']['getactivitytype'] = array('access CiviCRM', 'access AJAX API', 'access uploaded files', 'view all activities');
   $permissions['civi_outlook']['getcaseactivitytype'] = array('access CiviCRM', 'access AJAX API', 'access my cases and activities');
-  $permissions['civi_outlook']['getcaseactivitytype'] = array('access CiviCRM', 'access AJAX API', 'access my cases and activities');
   $permissions['civi_outlook']['createnewcase'] = array('access CiviCRM', 'access AJAX API', 'add cases', 'access my cases and activities');
   $permissions['civi_outlook']['getcivicasestatus'] = array('access CiviCRM', 'access AJAX API', 'access my cases and activities');
   $permissions['civi_outlook']['getcivicasetypes'] = array('access CiviCRM', 'access AJAX API', 'access my cases and activities');

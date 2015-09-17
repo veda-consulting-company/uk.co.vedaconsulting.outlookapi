@@ -351,7 +351,7 @@ function civicrm_api3_civi_outlook_getcivicases($params) {
  *  Get Civi Case Types
  */
 function civicrm_api3_civi_outlook_getcivicasetypes($params) {
-  $caseTypes = CRM_Case_PseudoConstant::caseType('title', FALSE);
+  $caseTypes = CRM_Case_PseudoConstant::caseType('title', TRUE);
   $result = array();
   if (CRM_Utils_Array::value("case_type_name", $params)) {
     $result['id'] = array_search($params['case_type_name'], $caseTypes);
@@ -366,7 +366,7 @@ function civicrm_api3_civi_outlook_getcivicasetypes($params) {
  * Get Civi Case Status
  */
 function civicrm_api3_civi_outlook_getcivicasestatus($params) {
-  $caseStatuses = CRM_Case_PseudoConstant::caseStatus('label', FALSE);
+  $caseStatuses = CRM_Case_PseudoConstant::caseStatus('label', TRUE);
   $result = array();
   if (CRM_Utils_Array::value("case_status_name", $params)) {
     $result['id'] = array_search($params['case_status_name'], $caseStatuses);
@@ -385,8 +385,8 @@ function civicrm_api3_civi_outlook_createnewcase($params) {
   $customCiviParams = array(
   'sequential' => 1,
   );
-  $caseTypes = CRM_Case_PseudoConstant::caseType('title', FALSE);
-  $caseStatuses = CRM_Case_PseudoConstant::caseStatus('label', FALSE);
+  $caseTypes = CRM_Case_PseudoConstant::caseType('title', TRUE);
+  $caseStatuses = CRM_Case_PseudoConstant::caseStatus('label', TRUE);
 
   /**
    * Hack for the error - "creator id is not of type int" Native API throws this error
