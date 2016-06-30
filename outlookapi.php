@@ -29,7 +29,7 @@ function outlookapi_civicrm_xmlMenu(&$files) {
  */
 function outlookapi_civicrm_install() {
   CRM_Core_BAO_Setting::setItem(3,
-    CRM_Outlookapi_Form_Setting::OUTLOOK_SETTING_GROUP,
+    'Outlook Preferences',
     'activity_type'
   );
   return _outlookapi_civix_civicrm_install();
