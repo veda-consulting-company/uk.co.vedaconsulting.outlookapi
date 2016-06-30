@@ -116,9 +116,9 @@ function civicrm_api3_civi_outlook_createactivity($params) {
         //Contact exists
         if (array_key_exists('id', $resultOutlookContact) && CRM_Utils_Array::value('id', $resultOutlookContact) ){
           //If outlook has sent a target contact id then create activity with that id
-          $customActivityParams['target_contact_id'] = $resultOutlookContact['id'];
+          $customActivityParams['target_contact_id'] = $resultOutlookContact['values'][$resultOutlookContact['id']]['contact_id'];
           $singleContactExists = array();
-          $singleContactExists['singleContactExists'] = $resultOutlookContact['id'];
+          $singleContactExists['singleContactExists'] = $resultOutlookContact['values'][$resultOutlookContact['id']]['contact_id'];
           return $singleContactExists;
         }
         else {
