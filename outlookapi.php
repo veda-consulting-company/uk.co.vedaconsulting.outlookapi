@@ -28,6 +28,10 @@ function outlookapi_civicrm_xmlMenu(&$files) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
  */
 function outlookapi_civicrm_install() {
+  CRM_Core_BAO_Setting::setItem(3,
+    CRM_Outlookapi_Form_Setting::OUTLOOK_SETTING_GROUP,
+    'activity_type'
+  );
   return _outlookapi_civix_civicrm_install();
 }
 
@@ -130,4 +134,48 @@ function outlookapi_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
   $permissions['civi_outlook']['getcivicasestatus'] = array('access CiviCRM', 'access AJAX API', 'access my cases and activities');
   $permissions['civi_outlook']['getcivicasetypes'] = array('access CiviCRM', 'access AJAX API', 'access my cases and activities');
   $permissions['civi_outlook']['getcivicases'] = array('access CiviCRM', 'access AJAX API', 'access my cases and activities');
+}
+
+
+/**
+ * Implementation of hook_civicrm_navigationMenu
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_permission
+ */
+function outlookapi_civicrm_navigationMenu(&$params){
+  // Check that our item doesn't already exist
+  $outlookSettingURL = array('url' => 'civicrm/outlook/settings?reset=1');
+  $setting_item = array();
+  CRM_Core_BAO_Navigation::retrieve($outlookSettingURL, $setting_item);
+  if ( ! empty($setting_item) ) {
+    return;
+  }
+  // Get the maximum key of $params using method mentioned in discussion
+  // https://issues.civicrm.org/jira/browse/CRM-13803
+  $navId = CRM_Core_DAO::singleValueQuery("SELECT max(id) FROM civicrm_navigation");
+  if (is_integer($navId)) {
+    $navId++;
+  }
+
+  foreach($params as $key => $value) {
+    if ('Administer' == $value['attributes']['name']) {
+      $parent_key = $key;
+      foreach($value['child'] as $child_key => $child_value) {
+        if ('System Settings' == $child_value['attributes']['name']) {
+          $params[$parent_key]['child'][$child_key]['child'][$navId] = array (
+            'attributes' => array (
+              'label' => ts('Outlook Settings'),
+              'name' => 'Outlook_Settings',
+              'url' => CRM_Utils_System::url('civicrm/outlook/settings', 'reset=1', TRUE),
+              'permission' => 'administer CiviCRM',
+              'separator' => 2,
+              'operator'  => NULL,
+              'parentID' => $child_key,
+              'navID' => $navId,
+              'active' => 1
+            )
+          );
+        }
+      }
+    }
+  }
 }

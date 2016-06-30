@@ -64,18 +64,42 @@ function civicrm_api3_civi_outlook_createactivity($params) {
         $recipientEmail = $match[1];
       }
       $paramGetEmail['email']= $recipientEmail;
+
+      $resultOutlookContact = array();
+      //Get the contact details - CiviCRM "Contact get" API matches on the primary email address by default.
       $resultOutlookContact = civicrm_api3('Contact', 'get', $paramGetEmail);
+
+      //Lookup for other email types
+      if (empty($resultOutlookContact['values'])) {
+        $resultOutlookContact = civicrm_api3('Email', 'get', $paramGetEmail);
+      }
 
       $filteredArray = array();
       foreach ($resultOutlookContact['values'] as $key => $details) {
-        $filteredArray[$key][contact_id] = $details['contact_id'];
-        $filteredArray[$key][contact_type] = $details['contact_type'];
-        $filteredArray[$key][sort_name] = $details['sort_name'];
-        $filteredArray[$key][email] = $details['email'];
+        if (CRM_Utils_Array::value('contact_id', $details)) {
+          $filteredArray[$key][contact_id] = $details['contact_id'];
+        }
+        if (CRM_Utils_Array::value('contact_type', $details)) {
+          $filteredArray[$key][contact_type] = $details['contact_type'];
+        }
+        if (CRM_Utils_Array::value('sort_name', $details)) {
+          $filteredArray[$key][sort_name] = $details['sort_name'];
+        }
+        else {
+          if (CRM_Utils_Array::value('contact_id', $details)) {
+            $sort_name = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $details['contact_id'], 'sort_name', 'id');
+            if ($sort_name) {
+              $filteredArray[$key][sort_name] = $sort_name;
+            }
+          }
+        }
+        if (CRM_Utils_Array::value('email', $details)) {
+          $filteredArray[$key][email] = $details['email'];
+        }
       }
-      $resultOutlookContact[values] = $filteredArray;
 
-    //If there are duplicate contacts return those contacts to Outlook
+      $resultOutlookContact[values] = $filteredArray;
+      //If there are duplicate contacts return those contacts to Outlook
       if (!array_key_exists('ot_target_contact_id', $params)) {
         if (!empty($resultOutlookContact)) {
           $countContact = count(array_keys($resultOutlookContact['values']));
@@ -121,13 +145,15 @@ function civicrm_api3_civi_outlook_createactivity($params) {
       if (CRM_Utils_Array::value('api_key', $params)) {
         $customActivityParams['api_key'] = $params['api_key'];
       }
-      if (CRM_Utils_Array::value('activity_type_id', $params)) {
-        if (CRM_Utils_Array::value('activity_type', $params)) {
-          $customActivityParams['activity_type_id'] = array_search($params['activity_type'], $activityOptions);
-        }
-        else {
-          $customActivityParams['activity_type_id'] = $params['activity_type_id'];
-        }
+      //
+      $activityTypeDefaultSetting = CRM_Core_BAO_Setting::getItem(CRM_Outlookapi_Form_Setting::OUTLOOK_SETTING_GROUP,
+      'activity_type', NULL, FALSE
+      );
+      if (CRM_Utils_Array::value('activity_type', $params)) {
+        $customActivityParams['activity_type_id'] = $params['activity_type'];
+      }
+      else {
+        $customActivityParams['activity_type_id'] = $activityTypeDefaultSetting;
       }
       if (CRM_Utils_Array::value('subject', $params)) {
         $customActivityParams['subject'] = $params['subject'];
@@ -427,3 +453,18 @@ function civicrm_api3_civi_outlook_getactivitytype($params) {
   return $result;
 }
 
+/**
+ * Get default activity type from CiviCRM setting
+ */
+function civicrm_api3_civi_outlook_getdefaultactivitytype($params) {
+  $activityOptions = CRM_Core_PseudoConstant::activityType(TRUE, TRUE, FALSE, 'label', TRUE);
+  $result = array();
+  $activityType = CRM_Core_BAO_Setting::getItem(CRM_Outlookapi_Form_Setting::OUTLOOK_SETTING_GROUP,
+      'activity_type', NULL, FALSE
+    );
+
+  if($activityType) {
+    $result[$activityType] = $activityOptions[$activityType];
+  }
+  return $result;
+}

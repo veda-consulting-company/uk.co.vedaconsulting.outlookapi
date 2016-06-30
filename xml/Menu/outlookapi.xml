@@ -6,4 +6,11 @@
     <title>outlook auditlogs</title>
     <access_arguments>access CiviCRM</access_arguments>
   </item>
+  <item>
+    <path>civicrm/outlook/settings</path>
+    <page_callback>CRM_Outlookapi_Form_Setting</page_callback>
+    <title>Outlook Settings</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+    <path_arguments>reset=1</path_arguments>
+  </item>
 </menu>
