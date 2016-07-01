@@ -99,3 +99,13 @@ Once api key is created in CiviCRM, choose the same to specify for the outlook p
    <br/>
 </ul>
 <br/>
+
+<div style="display: inline-block;padding: 10px;background: #f5f5f5;">
+<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span id="docs-internal-guid-71ac9345-a1c5-ad4a-8864-bfd8a33f5506"><span style="font-size: 18.6667px; font-family: Calibri; color: rgb(0, 0, 0); font-weight: 700; vertical-align: baseline; white-space: pre-wrap; background-color: transparent;"><h4><b>Admin Settings - Set default activity type for Outlook emails</b></h4></span></span></p>
+
+<p dir="ltr" style="line-height:1.38;margin-top:10px;margin-bottom:0pt;"><span id="docs-internal-guid-71ac9345-a1c5-ad4a-8864-bfd8a33f5506"><span style="font-size: 16px; font-family: Calibri; color: rgb(0, 0, 0); vertical-align: baseline; white-space: pre-wrap; background-color: transparent;">You can set the default activity type for all the emails filed from Outlook. By default it&rsquo;s set to &ldquo;Email&rdquo;. </span></span></p>
+
+<p dir="ltr" style="line-height:1.0;margin-top:0pt;margin-bottom:0pt;"><span id="docs-internal-guid-71ac9345-a1c5-ad4a-8864-bfd8a33f5506"><span style="font-size: 16px; font-family: Calibri; color: rgb(0, 0, 0); vertical-align: baseline; white-space: pre-wrap; background-color: transparent;">To change this setting, in CiviCRM go to Administer -&gt; System Settings -&gt; Outlook Settings</span></span></p>
+
+<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span id="docs-internal-guid-71ac9345-a1c5-ad4a-8864-bfd8a33f5506"><span style="font-size: 16px; font-family: Calibri; color: rgb(0, 0, 0); vertical-align: baseline; white-space: pre-wrap; background-color: transparent;"><img alt="Outlook.png" src="http://www.vedaconsulting.co.uk/sites/default/files/veda-uploads/uploads/2016/OutlookForCiviCRM/images/Outlook_default_setting.png" style="border: none; transform: rotate(0.00rad); -webkit-transform: rotate(0.00rad);" /></span></span></p>
+</div>
