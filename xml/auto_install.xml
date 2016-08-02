@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<CustomData>
+  <CustomGroups>
+    <CustomGroup>
+      <name>Outlook_Group_Settings</name>
+      <title>Outlook Group Settings</title>
+      <extends>Group</extends>
+      <style>Inline</style>
+      <collapse_display>0</collapse_display>
+      <help_pre></help_pre>
+      <help_post></help_post>
+      <weight>5</weight>
+      <is_active>1</is_active>
+      <table_name>civicrm_value_outlook_group_settings_11</table_name>
+      <is_multiple>0</is_multiple>
+      <collapse_adv_display>0</collapse_adv_display>
+      <created_date>2016-07-12 11:25:36</created_date>
+      <is_reserved>0</is_reserved>
+    </CustomGroup>
+  </CustomGroups>
+  <CustomFields>
+    <CustomField>
+      <name>Sync_to_Outlook</name>
+      <label>Sync to Outlook</label>
+      <data_type>String</data_type>
+      <html_type>CheckBox</html_type>
+      <default_value></default_value>
+      <is_required>0</is_required>
+      <is_searchable>1</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>1</weight>
+      <help_post>Enabling this setting will synchronise this group to Outlook distribution list</help_post>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <text_length>255</text_length>
+      <note_columns>60</note_columns>
+      <note_rows>4</note_rows>
+      <column_name>sync_to_outlook_15</column_name>
+      <in_selector>0</in_selector>
+      <option_group_name>sync_to_outlook</option_group_name>
+      <custom_group_name>Outlook_Group_Settings</custom_group_name>
+    </CustomField>
+  </CustomFields>
+  <OptionGroups>
+    <OptionGroup>
+      <name>sync_to_outlook</name>
+      <title>Sync to Outlook</title>
+      <is_reserved>1</is_reserved>
+      <is_active>1</is_active>
+    </OptionGroup>
+  </OptionGroups>
+  <OptionValues>
+    <OptionValue>
+      <label>&amp;nbsp;</label>
+      <value>1</value>
+      <name>_nbsp_</name>
+      <is_default>0</is_default>
+      <weight>1</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>0</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>sync_to_outlook</option_group_name>
+    </OptionValue>
+  </OptionValues>
+</CustomData>
+
