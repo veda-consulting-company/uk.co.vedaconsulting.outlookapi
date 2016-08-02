@@ -468,3 +468,54 @@ function civicrm_api3_civi_outlook_getdefaultactivitytype($params) {
   }
   return $result;
 }
+
+/**
+ * Get groups and their contacts
+ */
+function civicrm_api3_civi_outlook_getgroupcontacts($params) {
+  $groupData = $result = $temp = array();
+  $query = "
+      SELECT entity_id as group_id
+      FROM civicrm_value_outlook_group_settings_11
+      WHERE sync_to_outlook_15 = '1'";
+
+  $dao = CRM_Core_DAO::executeQuery($query);
+
+  while ($dao->fetch()) {
+    if ($dao->group_id) {
+      $contactValues = civicrm_api3('Contact', 'get', array(
+        'sequential' => 1,
+        'group' => $dao->group_id,
+      ));
+      $groupData[][$dao->group_id] = $contactValues['values'];
+    }
+  }
+
+  //send only the essential contact details
+  $contactMainDetails = array();
+
+  foreach($groupData as $groupContactdetails) {
+    foreach ($groupContactdetails as $groupID => $contactDetails) {
+      $groupDetails = civicrm_api3('Group', 'get', array(
+        'sequential' => 1,
+        'id' => $groupID,
+      ));
+      foreach($contactDetails as $dontBother => $values) {
+        if (!empty($groupDetails['values'])) {
+          $contactMainDetails[$values['contact_id']]['group_id'] = $groupDetails['values'][0]['id'];
+          $contactMainDetails[$values['contact_id']]['group_title'] = $groupDetails['values'][0]['title'];
+        }
+        $contactMainDetails[$values['contact_id']]['contact_id'] = $values['contact_id'];
+        $contactMainDetails[$values['contact_id']]['first_name'] = $values['first_name'];
+        $contactMainDetails[$values['contact_id']]['last_name'] = $values['last_name'];
+        $contactMainDetails[$values['contact_id']]['email'] = $values['email'];
+      }
+      $temp[] = $contactMainDetails;
+      unset($contactMainDetails);
+      unset($groupDetails);
+    }
+  }
+
+  $result['values'] = call_user_func_array('array_merge', $temp);
+  return $result;
+}
