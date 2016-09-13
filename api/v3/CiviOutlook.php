@@ -509,20 +509,24 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         'is_active' => 1,
       ));
       foreach($contactDetails as $dontBother => $values) {
-        if (CRM_Utils_Array::value("values", $groupDetails)) {
+        if (CRM_Utils_Array::value("values", $groupDetails) && CRM_Utils_Array::value("contact_id", $values)) {
           //get contact details
           $contactInfo = civicrm_api3('Contact', 'get', array(
             'sequential' => 1,
             'id' => $values['contact_id'],
             'group' => $groupDetails['values'][0]['id'],
           ));
-          $contactMainDetails[$values['contact_id']]['group_id'] = $groupDetails['values'][0]['id'];
-          $contactMainDetails[$values['contact_id']]['group_title'] = $groupDetails['values'][0]['title'];
+
+          //Don't get contacts that are deleted
+          if ($contactInfo['values'][0]['contact_is_deleted'] != 1) {
+            $contactMainDetails[$values['contact_id']]['group_id'] = $groupDetails['values'][0]['id'];
+            $contactMainDetails[$values['contact_id']]['group_title'] = $groupDetails['values'][0]['title'];
+            $contactMainDetails[$values['contact_id']]['contact_id'] = $contactInfo['values'][0]['contact_id'];
+            $contactMainDetails[$values['contact_id']]['first_name'] = $contactInfo['values'][0]['first_name'];
+            $contactMainDetails[$values['contact_id']]['last_name'] = $contactInfo['values'][0]['last_name'];
+            $contactMainDetails[$values['contact_id']]['email'] = $contactInfo['values'][0]['email'];
+          }
         }
-        $contactMainDetails[$values['contact_id']]['contact_id'] = $contactInfo['values'][0]['contact_id'];
-        $contactMainDetails[$values['contact_id']]['first_name'] = $contactInfo['values'][0]['first_name'];
-        $contactMainDetails[$values['contact_id']]['last_name'] = $contactInfo['values'][0]['last_name'];
-        $contactMainDetails[$values['contact_id']]['email'] = $contactInfo['values'][0]['email'];
       }
       $temp[] = $contactMainDetails;
       unset($contactMainDetails);
