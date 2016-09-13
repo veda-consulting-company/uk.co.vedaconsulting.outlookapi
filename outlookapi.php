@@ -186,10 +186,10 @@ function outlookapi_civicrm_navigationMenu(&$params){
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_permission
  */
 function outlookapi_civicrm_permission(&$permissions) {
-  $prefix = ts('CiviOutlook API') . ': '; // name of extension or module
+  $prefix = ts('CiviOutlook API') . ': ';  // name of extension or module
   $permissions['view APIkeys'] = array(
-    $prefix . ts('view APIkeys'),               // label
-    ts('View API keys of all contacts'),  // description
+    $prefix . ts('view APIkeys'),         // label
+    ts('View API keys of all contacts'), // description
   );
 }
 
@@ -197,9 +197,7 @@ function outlookapi_civicrm_permission(&$permissions) {
  * Implementation of hook_alterTemplateFile
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterTemplateFile
  */
-function  outlookapi_civicrm_alterTemplateFile($formName, &$form, $context, &$tplName)
- {
-
+function  outlookapi_civicrm_alterTemplateFile($formName, &$form, $context, &$tplName) {
   // If viewing API Key Tab
   if ($formName == 'CRM_Contact_Page_View_APIKey') {
     // contact ID
@@ -222,7 +220,5 @@ function  outlookapi_civicrm_alterTemplateFile($formName, &$form, $context, &$tp
       $accesDeniedTpl = 'CRM/Outlookapi/Page/AccessDenied.tpl';
       $tplName = $accesDeniedTpl;
     }
-
   }
-
 }

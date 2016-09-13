@@ -474,6 +474,8 @@ function civicrm_api3_civi_outlook_getdefaultactivitytype($params) {
  */
 function civicrm_api3_civi_outlook_getgroupcontacts($params) {
   $groupData = $result = $temp = array();
+
+  //get only the Outlook syncable groups
   $query = "
       SELECT entity_id as group_id
       FROM civicrm_value_outlook_group_settings_11
@@ -483,11 +485,15 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
 
   while ($dao->fetch()) {
     if ($dao->group_id) {
-      $contactValues = civicrm_api3('Contact', 'get', array(
+      //get Outlook syncable group contacts
+      $contactValues = civicrm_api3('GroupContact', 'get', array(
         'sequential' => 1,
-        'group' => $dao->group_id,
+        'group_id' => $dao->group_id,
+        'status' => "Added",
       ));
-      $groupData[][$dao->group_id] = $contactValues['values'];
+      if (CRM_Utils_Array::value("values", $contactValues)) {
+        $groupData[][$dao->group_id] = $contactValues['values'];
+      }
     }
   }
 
@@ -496,19 +502,27 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
 
   foreach($groupData as $groupContactdetails) {
     foreach ($groupContactdetails as $groupID => $contactDetails) {
+      //get group details
       $groupDetails = civicrm_api3('Group', 'get', array(
         'sequential' => 1,
         'id' => $groupID,
+        'is_active' => 1,
       ));
       foreach($contactDetails as $dontBother => $values) {
-        if (!empty($groupDetails['values'])) {
+        if (CRM_Utils_Array::value("values", $groupDetails)) {
+          //get contact details
+          $contactInfo = civicrm_api3('Contact', 'get', array(
+            'sequential' => 1,
+            'id' => $values['contact_id'],
+            'group' => $groupDetails['values'][0]['id'],
+          ));
           $contactMainDetails[$values['contact_id']]['group_id'] = $groupDetails['values'][0]['id'];
           $contactMainDetails[$values['contact_id']]['group_title'] = $groupDetails['values'][0]['title'];
         }
-        $contactMainDetails[$values['contact_id']]['contact_id'] = $values['contact_id'];
-        $contactMainDetails[$values['contact_id']]['first_name'] = $values['first_name'];
-        $contactMainDetails[$values['contact_id']]['last_name'] = $values['last_name'];
-        $contactMainDetails[$values['contact_id']]['email'] = $values['email'];
+        $contactMainDetails[$values['contact_id']]['contact_id'] = $contactInfo['values'][0]['contact_id'];
+        $contactMainDetails[$values['contact_id']]['first_name'] = $contactInfo['values'][0]['first_name'];
+        $contactMainDetails[$values['contact_id']]['last_name'] = $contactInfo['values'][0]['last_name'];
+        $contactMainDetails[$values['contact_id']]['email'] = $contactInfo['values'][0]['email'];
       }
       $temp[] = $contactMainDetails;
       unset($contactMainDetails);
