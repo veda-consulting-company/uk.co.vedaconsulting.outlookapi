@@ -475,15 +475,33 @@ function civicrm_api3_civi_outlook_getdefaultactivitytype($params) {
 function civicrm_api3_civi_outlook_getgroupcontacts($params) {
   $groupData = $result = $temp = array();
 
+  //check if distlists are sent from outlook. If yes only these lists would be synced with CiviCRM groups
+  $outlookDistLists = array();
+  if (CRM_Utils_Array::value("outlook_requested_groups", $params)) {
+    $distLists = trim($params['outlook_requested_groups'], "::");
+    $outlookDistLists = explode("::", $distLists);
+  }
+
   //get only the Outlook syncable groups
   $query = "
-      SELECT entity_id as group_id
-      FROM civicrm_value_outlook_group_settings_11
-      WHERE sync_to_outlook_15 = '1'";
+      SELECT se.entity_id as group_id, grp.title
+      FROM civicrm_value_outlook_group_settings_11 se
+      INNER JOIN civicrm_group grp
+      ON se.entity_id = grp.id
+      WHERE se.sync_to_outlook_15 = '1'";
+
+  //if group names are from outlook check is they are set to syncable in Civi
+  if (!empty($outlookDistLists)) {
+    foreach($outlookDistLists as $key => $list) {
+      $outlookDistLists[$key] = "'".$list."'";
+    }
+    $query .= " AND grp.title IN (".implode($outlookDistLists, ',').")";
+  }
 
   $dao = CRM_Core_DAO::executeQuery($query);
 
   while ($dao->fetch()) {
+    // process further only if group is present
     if ($dao->group_id) {
       //get Outlook syncable group contacts
       $contactValues = civicrm_api3('GroupContact', 'get', array(
@@ -499,38 +517,44 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
 
   //send only the essential contact details
   $contactMainDetails = array();
+  if (!empty($groupData)) {
+    foreach ($groupData as $groupContactdetails) {
+      foreach ($groupContactdetails as $groupID => $contactDetails) {
+        //get group details
+        $groupDetails = civicrm_api3('Group', 'get', array(
+          'sequential' => 1,
+          'id' => $groupID,
+          'is_active' => 1,
+        ));
+        foreach($contactDetails as $dontBother => $values) {
+          if (CRM_Utils_Array::value("values", $groupDetails) && CRM_Utils_Array::value("contact_id", $values)) {
+            //get contact details
+            $contactInfo = civicrm_api3('Contact', 'get', array(
+              'sequential' => 1,
+              'id' => $values['contact_id'],
+              'group' => $groupDetails['values'][0]['id'],
+            ));
 
-  foreach($groupData as $groupContactdetails) {
-    foreach ($groupContactdetails as $groupID => $contactDetails) {
-      //get group details
-      $groupDetails = civicrm_api3('Group', 'get', array(
-        'sequential' => 1,
-        'id' => $groupID,
-        'is_active' => 1,
-      ));
-      foreach($contactDetails as $dontBother => $values) {
-        if (CRM_Utils_Array::value("values", $groupDetails) && CRM_Utils_Array::value("contact_id", $values)) {
-          //get contact details
-          $contactInfo = civicrm_api3('Contact', 'get', array(
-            'sequential' => 1,
-            'id' => $values['contact_id'],
-            'group' => $groupDetails['values'][0]['id'],
-          ));
-
-          //Don't get contacts that are deleted
-          if ($contactInfo['values'][0]['contact_is_deleted'] != 1) {
-            $contactMainDetails[$values['contact_id']]['group_id'] = $groupDetails['values'][0]['id'];
-            $contactMainDetails[$values['contact_id']]['group_title'] = $groupDetails['values'][0]['title'];
-            $contactMainDetails[$values['contact_id']]['contact_id'] = $contactInfo['values'][0]['contact_id'];
-            $contactMainDetails[$values['contact_id']]['first_name'] = $contactInfo['values'][0]['first_name'];
-            $contactMainDetails[$values['contact_id']]['last_name'] = $contactInfo['values'][0]['last_name'];
-            $contactMainDetails[$values['contact_id']]['email'] = $contactInfo['values'][0]['email'];
+            //Don't get contacts that are deleted
+            if ($contactInfo['values'][0]['contact_is_deleted'] != 1) {
+              $contactMainDetails[$values['contact_id']]['group_id'] = $groupDetails['values'][0]['id'];
+              $contactMainDetails[$values['contact_id']]['group_title'] = $groupDetails['values'][0]['title'];
+              $contactMainDetails[$values['contact_id']]['contact_id'] = $contactInfo['values'][0]['contact_id'];
+              $contactMainDetails[$values['contact_id']]['first_name'] = $contactInfo['values'][0]['first_name'];
+              $contactMainDetails[$values['contact_id']]['last_name'] = $contactInfo['values'][0]['last_name'];
+              $contactMainDetails[$values['contact_id']]['email'] = $contactInfo['values'][0]['email'];
+              //return a flag to Outlook signifying they(groups and their contacts) exist in Civi
+              //only when they were specially requested by Outlook
+              if (CRM_Utils_Array::value("outlook_requested_groups", $params)) {
+                $contactMainDetails[$values['contact_id']]['is_outlook_requested'] = 1;
+              }
+            }
           }
         }
+        $temp[] = $contactMainDetails;
+        unset($contactMainDetails);
+        unset($groupDetails);
       }
-      $temp[] = $contactMainDetails;
-      unset($contactMainDetails);
-      unset($groupDetails);
     }
   }
 
