@@ -473,7 +473,7 @@ function civicrm_api3_civi_outlook_getdefaultactivitytype($params) {
  * Get groups and their contacts
  */
 function civicrm_api3_civi_outlook_getgroupcontacts($params) {
-  $groupData = $result = $temp = array();
+  $groupData = $groupDetails = $result = $temp = array();
 
   //check if distlists are sent from outlook. If yes only these lists would be synced with CiviCRM groups
   $outlookDistLists = array();
@@ -493,7 +493,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
   //if group names are from outlook check is they are set to syncable in Civi
   if (!empty($outlookDistLists)) {
     foreach($outlookDistLists as $key => $list) {
-      $outlookDistLists[$key] = "'".$list."'";
+      $outlookDistLists[$key] = "'".addslashes($list)."'";
     }
     $query .= " AND grp.title IN (".implode($outlookDistLists, ',').")";
   }
@@ -503,61 +503,36 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
   while ($dao->fetch()) {
     // process further only if group is present
     if ($dao->group_id) {
-      //get Outlook syncable group contacts
-      $contactValues = civicrm_api3('GroupContact', 'get', array(
+      //get Outlook syncable group contact
+      $contactValues = civicrm_api3('Contact', 'get', array(
         'sequential' => 1,
-        'group_id' => $dao->group_id,
+        'group' => $dao->group_id,
         'status' => "Added",
       ));
+
       if (CRM_Utils_Array::value("values", $contactValues)) {
-        $groupData[][$dao->group_id] = $contactValues['values'];
+        $groupData[$dao->group_id] = $contactValues['values'];
+        $groupDetails[$dao->group_id] = $dao->title;
       }
+      unset($contactValues);
     }
   }
 
-  //send only the essential contact details
-  $contactMainDetails = array();
+  //send only the essential/required contact details
   if (!empty($groupData)) {
-    foreach ($groupData as $groupContactdetails) {
-      foreach ($groupContactdetails as $groupID => $contactDetails) {
-        //get group details
-        $groupDetails = civicrm_api3('Group', 'get', array(
-          'sequential' => 1,
-          'id' => $groupID,
-          'is_active' => 1,
-        ));
-        foreach($contactDetails as $dontBother => $values) {
-          if (CRM_Utils_Array::value("values", $groupDetails) && CRM_Utils_Array::value("contact_id", $values)) {
-            //get contact details
-            $contactInfo = civicrm_api3('Contact', 'get', array(
-              'sequential' => 1,
-              'id' => $values['contact_id'],
-              'group' => $groupDetails['values'][0]['id'],
-            ));
-
-            //Don't get contacts that are deleted
-            if ($contactInfo['values'][0]['contact_is_deleted'] != 1) {
-              $contactMainDetails[$values['contact_id']]['group_id'] = $groupDetails['values'][0]['id'];
-              $contactMainDetails[$values['contact_id']]['group_title'] = $groupDetails['values'][0]['title'];
-              $contactMainDetails[$values['contact_id']]['contact_id'] = $contactInfo['values'][0]['contact_id'];
-              $contactMainDetails[$values['contact_id']]['first_name'] = $contactInfo['values'][0]['first_name'];
-              $contactMainDetails[$values['contact_id']]['last_name'] = $contactInfo['values'][0]['last_name'];
-              $contactMainDetails[$values['contact_id']]['email'] = $contactInfo['values'][0]['email'];
-              //return a flag to Outlook signifying they(groups and their contacts) exist in Civi
-              //only when they were specially requested by Outlook
-              if (CRM_Utils_Array::value("outlook_requested_groups", $params)) {
-                $contactMainDetails[$values['contact_id']]['is_outlook_requested'] = 1;
-              }
-            }
-          }
-        }
-        $temp[] = $contactMainDetails;
-        unset($contactMainDetails);
-        unset($groupDetails);
+    foreach ($groupData as $groupID => $groupContactdetails) {
+      foreach ($groupContactdetails as $key => $contactDetails) {
+        $temp[$groupID][$key]['group_id'] = $groupID;
+        $temp[$groupID][$key]['group_title'] = $groupDetails[$groupID];
+        $temp[$groupID][$key]['contact_id'] = $contactDetails['contact_id'];
+        $temp[$groupID][$key]['first_name'] = $contactDetails['first_name'];
+        $temp[$groupID][$key]['last_name'] = $contactDetails['last_name'];
+        $temp[$groupID][$key]['email'] = $contactDetails['email'];
       }
     }
   }
 
+  //build final result and return to Outlook
   $result['values'] = call_user_func_array('array_merge', $temp);
   return $result;
 }
