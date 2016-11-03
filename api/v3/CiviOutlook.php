@@ -503,11 +503,14 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
   while ($dao->fetch()) {
     // process further only if group is present
     if ($dao->group_id) {
-      //get Outlook syncable group contact
+      //get Outlook syncable group contacts
       $contactValues = civicrm_api3('Contact', 'get', array(
         'sequential' => 1,
         'group' => $dao->group_id,
         'status' => "Added",
+        'options' => array(
+          'limit' => 0,
+          ),
       ));
 
       if (CRM_Utils_Array::value("values", $contactValues)) {
