@@ -294,6 +294,50 @@ function civicrm_api3_civi_outlook_processattachments($params) {
 
     $fileExtension = new SplFileInfo($name);
     if ($fileExtension->getExtension()) {
+       /*
+      * Check if this file extension is allowed
+      * Check against values in "Outlook Safe File Extensions" custom field in Civi
+      */
+      $allFileExtensions = array();
+      //Get all the file extensions
+      try {
+        $result = civicrm_api3('OptionValue', 'get', array(
+          'sequential' => 1,
+          'option_group_id' => "ignore_file_extensions",
+        ));
+        if (!empty($result)) {
+          foreach ($result['values'] as $ext) {
+            $allFileExtensions[$ext['value']] = $ext['name'];
+          }
+        }
+
+        //Get source_contact_id and check if they have any file extensions added that need to be ignored when processing attachments
+        $source_contact_id = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $_REQUEST['api_key'], 'id', 'api_key');
+
+        if ($source_contact_id) {
+          try {
+            $result = civicrm_api3('CustomValue', 'get', array(
+              'sequential' => 1,
+              'entity_id' => $source_contact_id,
+            ));
+            foreach ($result['values'][0]['latest'] as $key => $val) {
+              if ($allFileExtensions[$val] == $fileExtension->getExtension()) {
+                return;
+              }
+            }
+          }
+          catch (CiviCRM_API3_Exception $e) {
+            $error = $e->getMessage();
+            CRM_Core_Error::debug_log_message($error);
+          }
+        }
+      }
+      catch (CiviCRM_API3_Exception $e) {
+        $error = $e->getMessage();
+        CRM_Core_Error::debug_log_message($error);
+      }
+
+
       $explodeName = explode(".".$fileExtension->getExtension(), $name);
       $name = $explodeName[0]."_".md5($name).".".$fileExtension->getExtension();
     }
