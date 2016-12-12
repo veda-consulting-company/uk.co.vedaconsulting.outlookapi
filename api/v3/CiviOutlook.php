@@ -294,6 +294,50 @@ function civicrm_api3_civi_outlook_processattachments($params) {
 
     $fileExtension = new SplFileInfo($name);
     if ($fileExtension->getExtension()) {
+       /*
+      * Check if this file extension is allowed
+      * Check against values in "Outlook Safe File Extensions" custom field in Civi
+      */
+      $allFileExtensions = array();
+      //Get all the file extensions
+      try {
+        $result = civicrm_api3('OptionValue', 'get', array(
+          'sequential' => 1,
+          'option_group_id' => "ignore_file_extensions",
+        ));
+        if (!empty($result)) {
+          foreach ($result['values'] as $ext) {
+            $allFileExtensions[$ext['value']] = $ext['name'];
+          }
+        }
+
+        //Get source_contact_id and check if they have any file extensions added that need to be ignored when processing attachments
+        $source_contact_id = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $_REQUEST['api_key'], 'id', 'api_key');
+
+        if ($source_contact_id) {
+          try {
+            $result = civicrm_api3('CustomValue', 'get', array(
+              'sequential' => 1,
+              'entity_id' => $source_contact_id,
+            ));
+            foreach ($result['values'][0]['latest'] as $key => $val) {
+              if ($allFileExtensions[$val] == $fileExtension->getExtension()) {
+                return;
+              }
+            }
+          }
+          catch (CiviCRM_API3_Exception $e) {
+            $error = $e->getMessage();
+            CRM_Core_Error::debug_log_message($error);
+          }
+        }
+      }
+      catch (CiviCRM_API3_Exception $e) {
+        $error = $e->getMessage();
+        CRM_Core_Error::debug_log_message($error);
+      }
+
+
       $explodeName = explode(".".$fileExtension->getExtension(), $name);
       $name = $explodeName[0]."_".md5($name).".".$fileExtension->getExtension();
     }
@@ -466,5 +510,76 @@ function civicrm_api3_civi_outlook_getdefaultactivitytype($params) {
   if($activityType) {
     $result[$activityType] = $activityOptions[$activityType];
   }
+  return $result;
+}
+
+/**
+ * Get groups and their contacts
+ */
+function civicrm_api3_civi_outlook_getgroupcontacts($params) {
+  $groupData = $groupDetails = $result = $temp = array();
+
+  //check if distlists are sent from outlook. If yes only these lists would be synced with CiviCRM groups
+  $outlookDistLists = array();
+  if (CRM_Utils_Array::value("outlook_requested_groups", $params)) {
+    $distLists = trim($params['outlook_requested_groups'], "::");
+    $outlookDistLists = explode("::", $distLists);
+  }
+
+  //get only the Outlook syncable groups
+  $query = "
+      SELECT se.entity_id as group_id, grp.title
+      FROM civicrm_value_outlook_group_settings_11 se
+      INNER JOIN civicrm_group grp
+      ON se.entity_id = grp.id
+      WHERE se.sync_to_outlook_15 = '1'";
+
+  //if group names are from outlook check is they are set to syncable in Civi
+  if (!empty($outlookDistLists)) {
+    foreach($outlookDistLists as $key => $list) {
+      $outlookDistLists[$key] = "'".addslashes($list)."'";
+    }
+    $query .= " AND grp.title IN (".implode($outlookDistLists, ',').")";
+  }
+
+  $dao = CRM_Core_DAO::executeQuery($query);
+
+  while ($dao->fetch()) {
+    // process further only if group is present
+    if ($dao->group_id) {
+      //get Outlook syncable group contacts
+      $contactValues = civicrm_api3('Contact', 'get', array(
+        'sequential' => 1,
+        'group' => $dao->group_id,
+        'status' => "Added",
+        'options' => array(
+          'limit' => 0,
+          ),
+      ));
+
+      if (CRM_Utils_Array::value("values", $contactValues)) {
+        $groupData[$dao->group_id] = $contactValues['values'];
+        $groupDetails[$dao->group_id] = $dao->title;
+      }
+      unset($contactValues);
+    }
+  }
+
+  //send only the essential/required contact details
+  if (!empty($groupData)) {
+    foreach ($groupData as $groupID => $groupContactdetails) {
+      foreach ($groupContactdetails as $key => $contactDetails) {
+        $temp[$groupID][$key]['group_id'] = $groupID;
+        $temp[$groupID][$key]['group_title'] = $groupDetails[$groupID];
+        $temp[$groupID][$key]['contact_id'] = $contactDetails['contact_id'];
+        $temp[$groupID][$key]['first_name'] = $contactDetails['first_name'];
+        $temp[$groupID][$key]['last_name'] = $contactDetails['last_name'];
+        $temp[$groupID][$key]['email'] = $contactDetails['email'];
+      }
+    }
+  }
+
+  //build final result and return to Outlook
+  $result['values'] = call_user_func_array('array_merge', $temp);
   return $result;
 }

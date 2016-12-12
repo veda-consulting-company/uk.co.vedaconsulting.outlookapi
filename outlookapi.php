@@ -179,3 +179,46 @@ function outlookapi_civicrm_navigationMenu(&$params){
     }
   }
 }
+
+// GK 28072016 - Custom permission to restrict viewing of other contacts API keys
+/**
+ * Implementation of hook_civicrm_permission
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_permission
+ */
+function outlookapi_civicrm_permission(&$permissions) {
+  $prefix = ts('CiviOutlook API') . ': ';  // name of extension or module
+  $permissions['view APIkeys'] = array(
+    $prefix . ts('view APIkeys'),         // label
+    ts('View API keys of all contacts'), // description
+  );
+}
+
+/**
+ * Implementation of hook_alterTemplateFile
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterTemplateFile
+ */
+function  outlookapi_civicrm_alterTemplateFile($formName, &$form, $context, &$tplName) {
+  // If viewing API Key Tab
+  if ($formName == 'CRM_Contact_Page_View_APIKey') {
+    // contact ID
+    $contactID = $form->_contactId;
+
+    $session = CRM_Core_Session::singleton();
+
+    // Do nothing, if viewing own contact record
+    $is_myself = ($contactID && ($contactID == $session->get('userID')));
+    if ($is_myself) {
+      return;
+    }
+
+    // check if user has view APIkeys permission
+    $has_permission = CRM_Core_Permission::check('view APIkeys');
+
+    // if the user doesn't have permission to view API keys
+    if (!$has_permission) {
+      // load the access denied tpl file
+      $accesDeniedTpl = 'CRM/Outlookapi/Page/AccessDenied.tpl';
+      $tplName = $accesDeniedTpl;
+    }
+  }
+}
