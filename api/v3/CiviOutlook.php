@@ -39,6 +39,103 @@ function civicrm_api3_civi_outlook_getdomain($params) {
 }
 
 /**
+ * CiviOutlook API specification (optional)
+ * This is used for documentation and validation.
+ *
+ * @param array $spec description of fields supported by this API call
+ * @return void
+ * @see http://wiki.civicrm.org/confluence/display/CRM/API+Architecture+Standards
+ */
+function _civicrm_api3_civi_outlook_getvalidid_spec(&$spec) {
+  $spec['contact_id']['api.required'] = 1;
+}
+
+/**
+ * CiviOutlook.GetValidId API
+ * This API validates the contact_id, activity_id and checks whether an activity belongs to that particular contact
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @see civicrm_api3_create_success
+ * @see civicrm_api3_create_error
+ * @throws API_Exception
+ */
+function civicrm_api3_civi_outlook_getvalidid($params) {
+  $result = array();
+  //Check whether the contact exists in Civi
+  if (CRM_Utils_Array::value('contact_id', $params)) {
+    try {
+      $contact = civicrm_api3('Contact', 'get', array(
+        'sequential' => 1,
+        'contact_type' => "Individual",
+        'id' => $params['contact_id'],
+      ));
+
+      //if contact exists, add it to the results
+      if (CRM_Utils_Array::value('id', $contact)) {
+        $result['values'][0]['contact_id'] = $contact['id'];
+      }
+      //if contact wasn't found, make sure it's removed from outlook_civicrm_user_defaults table
+      else {
+        $sql = "DELETE FROM outlook_civicrm_user_defaults
+        WHERE dupe_target_contact_id = ".$params['contact_id'];
+        CRM_Core_DAO::executeQuery($sql);
+        //Assign it to results
+        $result['values'][0]['isContactDeletedInCivi'] = true;
+      }
+    }
+    catch (CiviCRM_API3_Exception $e) {
+      $error = $e->getMessage();
+      CRM_Core_Error::debug_log_message($error);
+    }
+  }
+
+  //Check if activity_id exists in Civi
+  if (CRM_Utils_Array::value('activity_id', $params)) {
+    try {
+      $activity = civicrm_api3('Activity', 'get', array(
+        'sequential' => 1,
+        'id' => $params['activity_id'],
+      ));
+
+      //if activity exists, add it to the results
+      if (CRM_Utils_Array::value('id', $activity)) {
+        $result['values'][0]['activity_id'] = $activity['id'];
+      }
+    }
+    catch (CiviCRM_API3_Exception $e) {
+      $error = $e->getMessage();
+      CRM_Core_Error::debug_log_message($error);
+    }
+  }
+  
+  //Check if this activity belongs to this contact
+  $isActivityRelatedToContact = FALSE;
+  if (CRM_Utils_Array::value('contact_id', $params) &&
+      CRM_Utils_Array::value('activity_id', $params)) {
+    try {
+      $activityContact = civicrm_api3('ActivityContact', 'get', array(
+        'sequential' => 1,
+        'contact_id' => $params['contact_id'],
+        'activity_id' => $params['activity_id'],
+        'record_type_id' => "Activity Targets",
+      ));
+      
+      //if activity belongs to contact, set the isActivityRelatedToContact to true and add it to results
+      if (CRM_Utils_Array::value('id', $activityContact['values'][0])) {
+        $isActivityRelatedToContact = TRUE;
+        $result['values'][0]['isActivityRelatedToContact'] = $isActivityRelatedToContact;
+      }
+    }
+    catch (CiviCRM_API3_Exception $e) {
+      $error = $e->getMessage();
+      CRM_Core_Error::debug_log_message($error);
+    }
+  }
+  return $result;
+}
+
+/**
  * CiviOutlook.CreateActivity API
  *
  * @param array $params
