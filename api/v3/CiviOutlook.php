@@ -434,9 +434,8 @@ function civicrm_api3_civi_outlook_processattachments($params) {
         CRM_Core_Error::debug_log_message($error);
       }
 
-
-      $explodeName = explode(".".$fileExtension->getExtension(), $name);
-      $name = $explodeName[0]."_".md5($name).".".$fileExtension->getExtension();
+      // calling civi method to make attached file name. This makes unique name regardless of same file name
+      $name = CRM_Utils_File::makeFileName($_FILES['file']['name']);
     }
 
     $_FILES['file']['uri'] = $name;
