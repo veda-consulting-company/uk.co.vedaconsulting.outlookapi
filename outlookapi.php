@@ -134,6 +134,7 @@ function outlookapi_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
   $permissions['civi_outlook']['getcivicasestatus'] = array('access CiviCRM', 'access AJAX API', 'access my cases and activities');
   $permissions['civi_outlook']['getcivicasetypes'] = array('access CiviCRM', 'access AJAX API', 'access my cases and activities');
   $permissions['civi_outlook']['getcivicases'] = array('access CiviCRM', 'access AJAX API', 'access my cases and activities');
+  $permissions['civi_outlook']['getgroupcontacts'] = array('access CiviCRM', 'view all contacts');
 }
 
 
