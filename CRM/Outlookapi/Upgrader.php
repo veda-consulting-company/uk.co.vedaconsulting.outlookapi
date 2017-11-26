@@ -41,13 +41,13 @@ class CRM_Outlookapi_Upgrader extends CRM_Outlookapi_Upgrader_Base {
    *
    * @return TRUE on success
    * @throws Exception
-   *
-  public function upgrade_4200() {
-    $this->ctx->log->info('Applying update 4200');
-    CRM_Core_DAO::executeQuery('UPDATE foo SET bar = "whiz"');
-    CRM_Core_DAO::executeQuery('DELETE FROM bang WHERE willy = wonka(2)');
+   */
+  public function upgrade_216() {
+    $this->ctx->log->info('Applying update 216');
+    // this path is relative to the extension base dir
+    $this->executeSqlFile('sql/upgrade_216.sql');
     return TRUE;
-  } // */
+  }
 
 
   /**

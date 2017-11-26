@@ -108,7 +108,7 @@ function civicrm_api3_civi_outlook_getvalidid($params) {
       CRM_Core_Error::debug_log_message($error);
     }
   }
-  
+
   //Check if this activity belongs to this contact
   $isActivityRelatedToContact = FALSE;
   if (CRM_Utils_Array::value('contact_id', $params) &&
@@ -120,7 +120,7 @@ function civicrm_api3_civi_outlook_getvalidid($params) {
         'activity_id' => $params['activity_id'],
         'record_type_id' => "Activity Targets",
       ));
-      
+
       //if activity belongs to contact, set the isActivityRelatedToContact to true and add it to results
       if (CRM_Utils_Array::value('id', $activityContact['values'][0])) {
         $isActivityRelatedToContact = TRUE;
@@ -646,11 +646,11 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
       //get Outlook syncable group contacts
       $contactValues = civicrm_api3('Contact', 'get', array(
         'sequential' => 1,
-        'group' => $dao->group_id,
-        'status' => "Added",
-        'options' => array(
-          'limit' => 0,
-          ),
+        'group'      => $dao->group_id,
+        'status'     => "Added",
+        'options'    => array(
+          'limit'    => 0,
+        ),
       ));
 
       if (CRM_Utils_Array::value("values", $contactValues)) {
@@ -661,16 +661,81 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
     }
   }
 
+  //get Outlook and CiviCRM field mapping for additional contact details
+  $mappings = civicrm_api3_civi_outlook_getadditionalfieldmapping();
+
   //send only the essential/required contact details
   if (!empty($groupData)) {
     foreach ($groupData as $groupID => $groupContactdetails) {
       foreach ($groupContactdetails as $key => $contactDetails) {
-        $temp[$groupID][$key]['group_id'] = $groupID;
-        $temp[$groupID][$key]['group_title'] = $groupDetails[$groupID];
-        $temp[$groupID][$key]['contact_id'] = $contactDetails['contact_id'];
-        $temp[$groupID][$key]['first_name'] = $contactDetails['first_name'];
-        $temp[$groupID][$key]['last_name'] = $contactDetails['last_name'];
-        $temp[$groupID][$key]['email'] = $contactDetails['email'];
+        //get the additional email addresse(s) for this contact. Here we get email addresse(s) that are not primary
+        $additionalEmails = array();
+        try {
+          $resultEmails = civicrm_api3('Email', 'get', array(
+            'sequential' => 1,
+            'contact_id' => $contactDetails['contact_id'],
+            'is_primary' => 0,
+          ));
+          if (!empty($resultEmails['values'])) {
+            foreach ($resultEmails['values'] as $dontCare => $emailDetails) {
+              $additionalEmails[$emailDetails['location_type_id']] = $emailDetails['email'];
+            }
+          }
+        }
+        catch (CiviCRM_API3_Exception $e) {
+          $error = $e->getMessage();
+          CRM_Core_Error::debug_log_message($error);
+        }
+
+        //get additional phone number(s) for this contact. Here we get phone number(s) that are not primary
+        $additionalPhoneNumbers = array();
+        try {
+          $resultPhoneNumbers = civicrm_api3('Phone', 'get', array(
+            'sequential' => 1,
+            'contact_id' => $contactDetails['contact_id'],
+            'is_primary' => 0,
+          ));
+          if (!empty($resultPhoneNumbers['values'])) {
+            foreach ($resultPhoneNumbers['values'] as $dontCare => $phoneDetails) {
+              $additionalPhoneNumbers[$phoneDetails['phone_type_id']][$phoneDetails['location_type_id']] = $phoneDetails['phone'];
+            }
+          }
+        }
+        catch (CiviCRM_API3_Exception $e) {
+          $error = $e->getMessage();
+          CRM_Core_Error::debug_log_message($error);
+        }
+
+        $temp[$groupID][$key]['group_id']         = $groupID;
+        $temp[$groupID][$key]['group_title']      = $groupDetails[$groupID];
+        $temp[$groupID][$key]['contact_id']       = $contactDetails['contact_id'];
+        $temp[$groupID][$key]['first_name']       = $contactDetails['first_name'];
+        $temp[$groupID][$key]['last_name']        = $contactDetails['last_name'];
+        //primary email
+        $temp[$groupID][$key]['email']            = $contactDetails['email'];
+        //primary phone
+        $temp[$groupID][$key]['phone']            = $contactDetails['phone'];
+        $temp[$groupID][$key]['current_employer'] = $contactDetails[$mappings['values']['CompanyName']];
+        $temp[$groupID][$key]['job_title']        = $contactDetails[$mappings['values']['JobTitle']];
+        //additional emails: email_2 = email_[just_a_random_number]
+        $temp[$groupID][$key]['email_2']          = $additionalEmails[$mappings['values']['Email2Address']];
+        $temp[$groupID][$key]['email_3']          = $additionalEmails[$mappings['values']['Email3Address']];
+        //additional phone numbers
+        /* Following are the mappings of phone fields(Outlook vs CiviCRM)
+        * Home         -> Primary phone number
+        * Business     -> Phone(work/any)
+        * Business 2   -> Mobile(work/any)
+        * Business fax -> Fax(work/any)
+        * Mobile       -> Mobile(home/any)
+        */
+        //phone_2_1 = phone_[phone_type_id]_[just_a_random_number]
+        $temp[$groupID][$key]['phone_1']          = $additionalPhoneNumbers[1][$mappings['values']['BusinessTelephoneNumber']];
+        $temp[$groupID][$key]['phone_2_1']        = $additionalPhoneNumbers[2][$mappings['values']['Business2TelephoneNumber']];
+        $temp[$groupID][$key]['phone_3']          = $additionalPhoneNumbers[3][$mappings['values']['BusinessFaxNumber']];
+        $temp[$groupID][$key]['phone_2_2']        = $additionalPhoneNumbers[2][$mappings['values']['MobileTelephoneNumber']];
+
+        //cleanup additional emails for this contact
+        unset($additionalEmails);
       }
     }
   }
@@ -678,4 +743,22 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
   //build final result and return to Outlook
   $result['values'] = call_user_func_array('array_merge', $temp);
   return $result;
+}
+
+
+/**
+ * Get Outlook and CiviCRM field mapping for additional contact details
+ */
+function civicrm_api3_civi_outlook_getadditionalfieldmapping($params) {
+  $queryMapping = "SELECT *
+  FROM outlook_civicrm_additional_contact_field_mapping
+  WHERE 1";
+
+  $dao = CRM_Core_DAO::executeQuery($queryMapping);
+  $result = array();
+  while ($dao->fetch()) {
+    $result[$dao->outlook_field] = $dao->civicrm_field;
+  }
+
+  return civicrm_api3_create_success($result, $params);
 }
