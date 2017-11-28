@@ -706,36 +706,49 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
           CRM_Core_Error::debug_log_message($error);
         }
 
-        $temp[$groupID][$key]['group_id']         = $groupID;
-        $temp[$groupID][$key]['group_title']      = $groupDetails[$groupID];
-        $temp[$groupID][$key]['contact_id']       = $contactDetails['contact_id'];
-        $temp[$groupID][$key]['first_name']       = $contactDetails['first_name'];
-        $temp[$groupID][$key]['last_name']        = $contactDetails['last_name'];
-        //primary email
-        $temp[$groupID][$key]['email']            = $contactDetails['email'];
-        //primary phone
-        $temp[$groupID][$key]['phone']            = $contactDetails['phone'];
-        $temp[$groupID][$key]['current_employer'] = $contactDetails[$mappings['values']['CompanyName']];
-        $temp[$groupID][$key]['job_title']        = $contactDetails[$mappings['values']['JobTitle']];
-        //additional emails: email_2 = email_[just_a_random_number]
-        $temp[$groupID][$key]['email_2']          = $additionalEmails[$mappings['values']['Email2Address']];
-        $temp[$groupID][$key]['email_3']          = $additionalEmails[$mappings['values']['Email3Address']];
-        //additional phone numbers
+        $temp[$groupID][$key]['group_id']                          = $groupID;
+        $temp[$groupID][$key]['group_title']                       = $groupDetails[$groupID];
+        $temp[$groupID][$key]['contact_id']                        = $contactDetails['contact_id'];
+        $temp[$groupID][$key]['first_name']                        = $contactDetails['first_name'];
+        $temp[$groupID][$key]['last_name']                         = $contactDetails['last_name'];
+
+        //primary email (Mapped to Outlook field type -> Email)
+        $temp[$groupID][$key]['email']                             = $contactDetails['email'];
+
+        //primary phone (Mapped to Outlook field type -> Home)
+        $temp[$groupID][$key]['phone']                             = $contactDetails['phone'];
+
+        //primary address (Mapped to Outlook field type -> Home)
+        //Please note: Outlook at the moment doesn't have field(s) for storing supplemental address 1 and supplemental address 2 so not sending these two fields to Outlook
+        $temp[$groupID][$key]['address']['street_address']         = $contactDetails['street_address'];
+        $temp[$groupID][$key]['address']['city']                   = $contactDetails['city'];
+        $temp[$groupID][$key]['address']['postal_code']            = $contactDetails['postal_code'];
+        $temp[$groupID][$key]['address']['state_province_id']      = CRM_Core_PseudoConstant::stateProvince($contactDetails['state_province_id']);
+        $temp[$groupID][$key]['address']['country_id']             = CRM_Core_PseudoConstant::country($contactDetails['country_id']);
+
+        //additional contact field(s)
+        $temp[$groupID][$key]['current_employer']                  = $contactDetails[$mappings['values']['CompanyName']];
+        $temp[$groupID][$key]['job_title']                         = $contactDetails[$mappings['values']['JobTitle']];
+
+        //additional email(s): email_2 = email_[just_a_random_number]
+        $temp[$groupID][$key]['email_2']                           = $additionalEmails[$mappings['values']['Email2Address']];
+        $temp[$groupID][$key]['email_3']                           = $additionalEmails[$mappings['values']['Email3Address']];
+
+        //additional phone number(s)
         /* Following are the mappings of phone fields(Outlook vs CiviCRM)
-        * Home         -> Primary phone number
         * Business     -> Phone(work/any)
         * Business 2   -> Mobile(work/any)
         * Business fax -> Fax(work/any)
         * Mobile       -> Mobile(home/any)
         */
-        //phone_2_1 = phone_[phone_type_id]_[just_a_random_number]
-        $temp[$groupID][$key]['phone_1']          = $additionalPhoneNumbers[1][$mappings['values']['BusinessTelephoneNumber']];
-        $temp[$groupID][$key]['phone_2_1']        = $additionalPhoneNumbers[2][$mappings['values']['Business2TelephoneNumber']];
-        $temp[$groupID][$key]['phone_3']          = $additionalPhoneNumbers[3][$mappings['values']['BusinessFaxNumber']];
-        $temp[$groupID][$key]['phone_2_2']        = $additionalPhoneNumbers[2][$mappings['values']['MobileTelephoneNumber']];
+        //key mapping -> phone_2_1 = phone_[phone_type_id]_[just_a_random_number]
+        $temp[$groupID][$key]['phone_1']                          = $additionalPhoneNumbers[1][$mappings['values']['BusinessTelephoneNumber']];
+        $temp[$groupID][$key]['phone_2_1']                        = $additionalPhoneNumbers[2][$mappings['values']['Business2TelephoneNumber']];
+        $temp[$groupID][$key]['phone_3']                          = $additionalPhoneNumbers[3][$mappings['values']['BusinessFaxNumber']];
+        $temp[$groupID][$key]['phone_2_2']                        = $additionalPhoneNumbers[2][$mappings['values']['MobileTelephoneNumber']];
 
-        //cleanup additional emails for this contact
-        unset($additionalEmails);
+        //perform cleanup
+        unset($additionalEmails, $additionalPhoneNumbers);
       }
     }
   }
