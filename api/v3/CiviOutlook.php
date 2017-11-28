@@ -719,8 +719,8 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
               $additionalAddresses[$addressDetails['location_type_id']]['street_address']    = $addressDetails['street_address'];
               $additionalAddresses[$addressDetails['location_type_id']]['city']              = $addressDetails['city'];
               $additionalAddresses[$addressDetails['location_type_id']]['postal_code']       = $addressDetails['postal_code'];
-              $additionalAddresses[$addressDetails['location_type_id']]['state_province_id'] = CRM_Core_PseudoConstant::stateProvince($addressDetails['state_province_id']);
-              $additionalAddresses[$addressDetails['location_type_id']]['country_id']        = CRM_Core_PseudoConstant::country($addressDetails['country_id']);
+              $additionalAddresses[$addressDetails['location_type_id']]['state_province_id'] = $addressDetails['state_province_id'] ? CRM_Core_PseudoConstant::stateProvince($addressDetails['state_province_id']) : "";
+              $additionalAddresses[$addressDetails['location_type_id']]['country_id']        = $addressDetails['country_id'] ? CRM_Core_PseudoConstant::country($addressDetails['country_id']) : "";
             }
           }
         }
@@ -747,8 +747,8 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         $temp[$groupID][$key]['address']['street_address']    = $contactDetails['street_address'];
         $temp[$groupID][$key]['address']['city']              = $contactDetails['city'];
         $temp[$groupID][$key]['address']['postal_code']       = $contactDetails['postal_code'];
-        $temp[$groupID][$key]['address']['state_province_id'] = CRM_Core_PseudoConstant::stateProvince($contactDetails['state_province_id']);
-        $temp[$groupID][$key]['address']['country_id']        = CRM_Core_PseudoConstant::country($contactDetails['country_id']);
+        $temp[$groupID][$key]['address']['state_province_id'] = $contactDetails['state_province_id'] ?CRM_Core_PseudoConstant::stateProvince($contactDetails['state_province_id']) : "";
+        $temp[$groupID][$key]['address']['country_id']        = $contactDetails['country_id'] ? CRM_Core_PseudoConstant::country($contactDetails['country_id']) : "";
 
         //additional contact field(s)
         $temp[$groupID][$key]['current_employer']             = $contactDetails[$mappings['values']['CompanyName']];

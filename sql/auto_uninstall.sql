@@ -4,6 +4,9 @@ DROP TABLE IF EXISTS outlook_civicrm_audit;
 -- drop table
 DROP TABLE IF EXISTS `outlook_civicrm_user_defaults`;
 
+-- drop table
+DROP TABLE IF EXISTS `outlook_civicrm_additional_contact_field_mapping`;
+
 -- drop custom group for syncing groups
 DELETE FROM civicrm_custom_group WHERE name = 'Outlook_Group_Settings';
 
