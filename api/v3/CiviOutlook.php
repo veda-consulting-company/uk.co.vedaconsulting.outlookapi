@@ -729,6 +729,41 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
           CRM_Core_Error::debug_log_message($error);
         }
 
+        //get custom field(s)(if any) for this contact
+        $customData = array();
+        try {
+          $resultCustomData = civicrm_api3('CustomValue', 'get', array(
+            'sequential' => 1,
+            'entity_id'  => $contactDetails['contact_id'],
+          ));
+          if (!empty($resultCustomData['values'])) {
+            foreach ($resultCustomData['values'] as $dontCare => $customDataDetails) {
+              //get custom field name by id
+              $resultCustomField = civicrm_api3('CustomField', 'get', array(
+                'sequential' => 1,
+                'id'         => $customDataDetails['id'],
+              ));
+              if (!empty($resultCustomField['values'][0])) {
+                $customData[$resultCustomField['values'][0]['name']] = $customDataDetails['latest'];
+
+                //if option group/value are used in the custom fields, get option_value label
+                if(CRM_Utils_Array::value('option_group_id', $resultCustomField['values'][0])) {
+                  $resultOptionValue = civicrm_api3('OptionValue', 'get', array(
+                    'sequential' => 1,
+                    'option_group_id' => $resultCustomField['values'][0]['option_group_id'],
+                    'value' => $customDataDetails['latest'],
+                  ));
+                  $customData[$resultCustomField['values'][0]['name']] = $resultOptionValue['values'][0]['label'];
+                }
+              }
+            }
+          }
+        }
+        catch (CiviCRM_API3_Exception $e) {
+          $error = $e->getMessage();
+          CRM_Core_Error::debug_log_message($error);
+        }
+
         //let's build a temp array that we'll send to Outlook as consolidated result
         $temp[$groupID][$key]['group_id']                     = $groupID;
         $temp[$groupID][$key]['group_title']                  = $groupDetails[$groupID];
@@ -783,6 +818,9 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         $temp[$groupID][$key]['address_3']                     = $additionalAddresses[$mappings['values']['OtherAddressPostalCode']];
         $temp[$groupID][$key]['address_3']                     = $additionalAddresses[$mappings['values']['OtherAddressState']];
         $temp[$groupID][$key]['address_3']                     = $additionalAddresses[$mappings['values']['OtherAddressCountry']];
+
+        //assign custom data array to temp array
+        $temp[$groupID][$key][custom_fields]                   = $customData;
 
         //perform cleanup
         unset($additionalEmails, $additionalPhoneNumbers, $additionalAddresses);
