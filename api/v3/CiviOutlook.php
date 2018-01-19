@@ -571,11 +571,24 @@ function civicrm_api3_civi_outlook_createnewcase($params) {
 /*
  * Get Case Activity Types
  */
+function _civicrm_api3_civi_outlook_getcaseactivitytype_spec(&$spec) {
+  $spec['case_id']['api.required'] = 0;
+}
+
 function civicrm_api3_civi_outlook_getcaseactivitytype($params) {
-  $activityOptions = CRM_Case_PseudoConstant::caseActivityType();
+  $case = civicrm_api3('Case', 'getsingle', array(
+    'id' => $params['case_id'],
+  ));
+
+  $allowedActivities = civicrm_api3('CaseType', 'getsingle', array(
+    'sequential'  => 1,
+    'id'          => $case['case_type_id'],
+    'return'      => 'definition',
+  ));
+
   $result = array();
-  foreach ($activityOptions as $key => $values) {
-    $result[] = $key;
+  foreach ($allowedActivities['definition']['activityTypes'] as $value) {
+    $result[] = $value['name'];
   }
   return $result;
 }
