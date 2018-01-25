@@ -700,13 +700,12 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
           CRM_Core_Error::debug_log_message($error);
         }
 
-        //get additional phone number(s) for this contact. Here we get phone number(s) that are not primary
+        //get additional phone number(s) for this contact. Here we get phone number(s) that are both primary and not primary
         $additionalPhoneNumbers = array();
         try {
           $resultPhoneNumbers = civicrm_api3('Phone', 'get', array(
             'sequential' => 1,
             'contact_id' => $contactDetails['contact_id'],
-            'is_primary' => 0,
           ));
           if (!empty($resultPhoneNumbers['values'])) {
             foreach ($resultPhoneNumbers['values'] as $dontCare => $phoneDetails) {
@@ -786,9 +785,6 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
 
         //primary email (Maps to Outlook field type -> Email)
         $temp[$groupID][$key]['email']                        = $contactDetails['email'];
-
-        //primary phone (Maps to Outlook field type -> Home)
-        $temp[$groupID][$key]['phone']                        = $contactDetails['phone'];
 
         //primary address (Maps to Outlook field type -> Home)
         //Please note: Outlook at the moment doesn't have field(s) for storing supplemental address 1 and supplemental address 2 so not sending these two field(s) to Outlook
