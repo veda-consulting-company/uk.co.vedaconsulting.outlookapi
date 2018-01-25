@@ -109,3 +109,21 @@ Once api key is created in CiviCRM, choose the same to specify for the outlook p
 
 <p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span id="docs-internal-guid-71ac9345-a1c5-ad4a-8864-bfd8a33f5506"><span style="font-size: 16px; font-family: Calibri; color: rgb(0, 0, 0); vertical-align: baseline; white-space: pre-wrap; background-color: transparent;"><img alt="Outlook.png" src="http://www.vedaconsulting.co.uk/sites/default/files/veda-uploads/uploads/2016/OutlookForCiviCRM/images/Outlook_default_setting.png" style="border: none; transform: rotate(0.00rad); -webkit-transform: rotate(0.00rad);" /></span></span></p>
 </div>
+
+<div style="display: inline-block;padding: 10px;background: #f5f5f5;">
+<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span id="docs-internal-guid-71ac9345-a1c5-ad4a-8864-bfd8a33f5506"><span style="font-size: 18.6667px; font-family: Calibri; color: rgb(0, 0, 0); font-weight: 700; vertical-align: baseline; white-space: pre-wrap; background-color: transparent;"><h4><b>New features added in v3.0.0.beta</b></h4></span></span></p>
+
+<p dir="ltr" style="line-height:1.0;margin-top:0pt;margin-bottom:0pt;"><span id="docs-internal-guid-71ac9345-a1c5-ad4a-8864-bfd8a33f5506"><span style="font-size: 16px; font-family: Calibri; color: rgb(0, 0, 0); vertical-align: baseline; white-space: pre-wrap; background-color: transparent;">
+	<ul>
+		<li>Additional contact fields fetched from CiviCRM into Outlook</li>
+		<li>Custom fields fetched from CiviCRM and stored against Outlook record</li>
+		<li>Changes on a contact are synchronised during the sync such as firstname, lastname and email</li>
+		<li>The sync updates all the fields and overrides the value in the Outlook record</li>
+		<li>"Delete contacts in Outlook when removed from the CiviCRM group" setting allows you to completely delete a contact from Outlook if it's no longer a part of any group</li>
+		<li>Automatic sync - Allows to launch the sync every X hours, the value can be configured in the plugin settings</li>
+	</ul>
+	<a target="_BLANK" href="https://vedaconsulting.co.uk/outlookforcivicrm-v3.0.0.beta-release">View full documentation on v3.0.0.beta</a>
+</span></span></p>
+
+
+</div>
