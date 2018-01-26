@@ -700,16 +700,17 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
           CRM_Core_Error::debug_log_message($error);
         }
 
-        //get additional phone number(s) for this contact. Here we get phone number(s) that are both primary and not primary
+        //get additional phone number(s) for this contact. Here we get phone number(s) that are  primary and not primary
         $additionalPhoneNumbers = array();
         try {
           $resultPhoneNumbers = civicrm_api3('Phone', 'get', array(
             'sequential' => 1,
             'contact_id' => $contactDetails['contact_id'],
           ));
+
           if (!empty($resultPhoneNumbers['values'])) {
             foreach ($resultPhoneNumbers['values'] as $dontCare => $phoneDetails) {
-              $additionalPhoneNumbers[$phoneDetails['phone_type_id']][$phoneDetails['location_type_id']] = $phoneDetails['phone'];
+              $additionalPhoneNumbers[$phoneDetails['location_type_id']][$phoneDetails['phone_type_id']] = $phoneDetails['phone'];
             }
           }
         }
@@ -802,17 +803,23 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         $temp[$groupID][$key]['email_2']                      = $additionalEmails[$mappings['values']['Email2Address']];
         $temp[$groupID][$key]['email_3']                      = $additionalEmails[$mappings['values']['Email3Address']];
 
-        //additional phone number(s): key mapping -> phone_2_1 = phone_[phone_type_id]_[just_a_random_number]
+        //additional phone number(s): key mapping -> phone_1_1 = phone_[location_type_id]_[phone_type_id]
         /* Following are the mappings of phone field(s)(Outlook vs CiviCRM)
-        * Business     -> Phone(work/any)
-        * Business 2   -> Mobile(work/any)
-        * Business fax -> Fax(work/any)
-        * Mobile       -> Mobile(home/any)
+        * Outlook         CiviCRM
+                          Location type       Phone type
+        * Home         -> Home              - Phone
+        * Home 2       -> Home              - Mobile
+        * Home fax     -> Home              - Fax
+        * Business     -> Work              - Phone
+        * Business 2   -> Work              - Mobile
+        * Business fax -> Work              - Fax
         */
-        $temp[$groupID][$key]['phone_1']                       = $additionalPhoneNumbers[1][$mappings['values']['BusinessTelephoneNumber']];
-        $temp[$groupID][$key]['phone_2_1']                     = $additionalPhoneNumbers[2][$mappings['values']['Business2TelephoneNumber']];
-        $temp[$groupID][$key]['phone_3']                       = $additionalPhoneNumbers[3][$mappings['values']['BusinessFaxNumber']];
-        $temp[$groupID][$key]['phone_2_2']                     = $additionalPhoneNumbers[2][$mappings['values']['MobileTelephoneNumber']];
+        $temp[$groupID][$key]['phone_1_1']                    = $additionalPhoneNumbers[$mappings['values']['HomeTelephoneNumber']][1];
+        $temp[$groupID][$key]['phone_1_2']                    = $additionalPhoneNumbers[$mappings['values']['Home2TelephoneNumber']][2];
+        $temp[$groupID][$key]['phone_1_3']                    = $additionalPhoneNumbers[$mappings['values']['HomeFaxNumber']][3];
+        $temp[$groupID][$key]['phone_2_1']                    = $additionalPhoneNumbers[$mappings['values']['BusinessTelephoneNumber']][1];
+        $temp[$groupID][$key]['phone_2_2']                    = $additionalPhoneNumbers[$mappings['values']['Business2TelephoneNumber']][2];
+        $temp[$groupID][$key]['phone_2_3']                    = $additionalPhoneNumbers[$mappings['values']['BusinessFaxNumber']][3];
 
         //additional address(s)
         //business address: key mapping -> address_2 = address_[just_a_random_number]
