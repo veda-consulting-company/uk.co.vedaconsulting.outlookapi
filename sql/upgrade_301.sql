@@ -13,6 +13,7 @@ INSERT INTO `outlook_civicrm_additional_contact_field_mapping` (`id`, `outlook_f
 ('', 'BusinessTelephoneNumber', '2'),
 ('', 'Business2TelephoneNumber', '2'),
 ('', 'BusinessFaxNumber', '2'),
+('', 'AssistantTelephoneNumber', '2'),
 ('', 'BusinessAddressStreet', '2'),
 ('', 'BusinessAddressCity', '2'),
 ('', 'BusinessAddressPostalCode', '2'),

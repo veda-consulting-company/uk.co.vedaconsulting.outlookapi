@@ -1,6 +1,7 @@
 <?php
 
 require_once 'outlookapi.civix.php';
+define('PHONE_TYPE_ASSISTANT', 'Assistant');
 
 /**
  * Implementation of hook_civicrm_config

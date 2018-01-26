@@ -719,6 +719,10 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
           CRM_Core_Error::debug_log_message($error);
         }
 
+        //get additional phone type - assistant
+        $phoneTypes = CRM_Core_PseudoConstant::get('CRM_Core_DAO_Phone', 'phone_type_id');
+        $assistantId = array_search(PHONE_TYPE_ASSISTANT, $phoneTypes) ? array_search(PHONE_TYPE_ASSISTANT, $phoneTypes) : '';
+
         //get additional address(s) for this contact. Here we get address(s) that are not primary
         $additionalAddresses = array();
         try {
@@ -813,6 +817,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         * Business     -> Work              - Phone
         * Business 2   -> Work              - Mobile
         * Business fax -> Work              - Fax
+        * Assistant    -> Work              - Assistant
         */
         $temp[$groupID][$key]['phone_1_1']                    = $additionalPhoneNumbers[$mappings['values']['HomeTelephoneNumber']][1];
         $temp[$groupID][$key]['phone_1_2']                    = $additionalPhoneNumbers[$mappings['values']['Home2TelephoneNumber']][2];
@@ -820,6 +825,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         $temp[$groupID][$key]['phone_2_1']                    = $additionalPhoneNumbers[$mappings['values']['BusinessTelephoneNumber']][1];
         $temp[$groupID][$key]['phone_2_2']                    = $additionalPhoneNumbers[$mappings['values']['Business2TelephoneNumber']][2];
         $temp[$groupID][$key]['phone_2_3']                    = $additionalPhoneNumbers[$mappings['values']['BusinessFaxNumber']][3];
+        $temp[$groupID][$key]['phone_2_6']                    = $additionalPhoneNumbers[$mappings['values']['AssistantTelephoneNumber']][$assistantId];
 
         //additional address(s)
         //business address: key mapping -> address_2 = address_[just_a_random_number]
