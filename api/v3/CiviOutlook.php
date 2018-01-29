@@ -733,6 +733,17 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
           if (!empty($resultAddresses['values'])) {
             foreach ($resultAddresses['values'] as $dontCare => $addressDetails) {
               $additionalAddresses[$addressDetails['location_type_id']]['street_address']    = $addressDetails['street_address'];
+              //Civi supplemental maps to Outlook street address and is added on next line
+              $supplementalAddress = array();
+              if (CRM_Utils_Array::value('supplemental_address_1', $addressDetails)) {
+                $supplementalAddress[] = $addressDetails['supplemental_address_1'];
+              }
+              if (CRM_Utils_Array::value('supplemental_address_2', $addressDetails)) {
+                $supplementalAddress[] = $addressDetails['supplemental_address_2'];
+              }
+              if (!empty($supplementalAddress)) {
+                $additionalAddresses[$addressDetails['location_type_id']]['suppl_address']   = implode(", ", $supplementalAddress);
+              }
               $additionalAddresses[$addressDetails['location_type_id']]['city']              = $addressDetails['city'];
               $additionalAddresses[$addressDetails['location_type_id']]['postal_code']       = $addressDetails['postal_code'];
               $additionalAddresses[$addressDetails['location_type_id']]['state_province_id'] = $addressDetails['state_province_id'] ? CRM_Core_PseudoConstant::stateProvince($addressDetails['state_province_id']) : "";
