@@ -733,7 +733,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
           if (!empty($resultAddresses['values'])) {
             foreach ($resultAddresses['values'] as $dontCare => $addressDetails) {
               $additionalAddresses[$addressDetails['location_type_id']]['street_address']    = $addressDetails['street_address'];
-              //Civi supplemental maps to Outlook street address and is added on next line
+              //Civi supplemental address maps to Outlook street address and is added on next line
               $supplementalAddress = array();
               if (CRM_Utils_Array::value('supplemental_address_1', $addressDetails)) {
                 $supplementalAddress[] = $addressDetails['supplemental_address_1'];
@@ -773,14 +773,29 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
               if (!empty($resultCustomField['values'][0])) {
                 $customData[$resultCustomField['values'][0]['name']] = $customDataDetails['latest'];
 
+                $multipleOptionValues = array();
                 //if option group/value are used in the custom fields, get option_value label
                 if(CRM_Utils_Array::value('option_group_id', $resultCustomField['values'][0])) {
-                  $resultOptionValue = civicrm_api3('OptionValue', 'get', array(
-                    'sequential' => 1,
-                    'option_group_id' => $resultCustomField['values'][0]['option_group_id'],
-                    'value' => $customDataDetails['latest'],
-                  ));
-                  $customData[$resultCustomField['values'][0]['name']] = $resultOptionValue['values'][0]['label'];
+                  $multipleOptionValues[] = $customDataDetails['latest'];
+                  //handle multiple values for a custom field
+                  if(is_array($customDataDetails['latest']) &&
+                  !empty($customDataDetails['latest'])) {
+                    $multipleOptionValues = call_user_func_array('array_merge', $multipleOptionValues);
+                  }
+
+                  $multipleValues = array();
+                  foreach ($multipleOptionValues as $optVal) {
+                    if(CRM_Utils_Array::value('option_group_id', $resultCustomField['values'][0])) {
+                      $resultOptionValue = civicrm_api3('OptionValue', 'get', array(
+                        'sequential'      => 1,
+                        'option_group_id' => $resultCustomField['values'][0]['option_group_id'],
+                        'value'           => $optVal,
+                      ));
+                      $multipleValues[] = $resultOptionValue['values'][0]['label'];
+                    }
+                  }
+                  //comma separated custom field values
+                  $customData[$resultCustomField['values'][0]['name']] = implode(", ", $multipleValues);
                 }
               }
             }
