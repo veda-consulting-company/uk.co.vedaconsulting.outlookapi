@@ -127,3 +127,19 @@ Once api key is created in CiviCRM, choose the same to specify for the outlook p
 
 
 </div>
+
+<br/>
+<div style="display: inline-block;padding: 10px;background: #f5f5f5;">
+<p dir="ltr" style="line-height:1.38;margin-top:0pt;margin-bottom:0pt;"><span id="docs-internal-guid-71ac9345-a1c5-ad4a-8864-bfd8a33f5506"><span style="font-size: 18.6667px; font-family: Calibri; color: rgb(0, 0, 0); font-weight: 700; vertical-align: baseline; white-space: pre-wrap; background-color: transparent;"><h4><b>Improvements/fixes in v3.0.1</b></h4></span></span></p>
+
+<p dir="ltr" style="line-height:1.0;margin-top:0pt;margin-bottom:0pt;"><span id="docs-internal-guid-71ac9345-a1c5-ad4a-8864-bfd8a33f5506"><span style="font-size: 16px; font-family: Calibri; color: rgb(0, 0, 0); vertical-align: baseline; white-space: pre-wrap; background-color: transparent;">
+    <ul>
+        <li>Civi work phone is now synced to Outlook Business field</li>
+        <li>Civi phones of type "home" are synced to Outlook Home, Home 2 and Home Fax</li>
+        <li>Civi additional phone type is synced to Outlook Assistant field</li>
+        <li>Civi work address is synced to Outlook Business address (primary or not)</li>
+        <li>Added supplemental address to Outlook Street address field</li>
+        <li>Fixed custom fields(multiple values) does not come through</li>
+    </ul>
+</span></span></p>
+</div>
