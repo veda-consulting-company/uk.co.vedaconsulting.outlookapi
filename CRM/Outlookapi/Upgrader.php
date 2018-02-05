@@ -42,10 +42,17 @@ class CRM_Outlookapi_Upgrader extends CRM_Outlookapi_Upgrader_Base {
    * @return TRUE on success
    * @throws Exception
    */
-  public function upgrade_216() {
-    $this->ctx->log->info('Applying update 216');
+  public function upgrade_300() {
+    $this->ctx->log->info('Applying update 3.0.0.beta');
     // this path is relative to the extension base dir
-    $this->executeSqlFile('sql/upgrade_216.sql');
+    $this->executeSqlFile('sql/upgrade_300_beta.sql');
+    return TRUE;
+  }
+
+  public function upgrade_301() {
+    $this->ctx->log->info('Applying update 3.0.1');
+    // this path is relative to the extension base dir
+    $this->executeSqlFile('sql/upgrade_301.sql');
     return TRUE;
   }
 

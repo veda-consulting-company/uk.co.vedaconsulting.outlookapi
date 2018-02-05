@@ -700,17 +700,17 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
           CRM_Core_Error::debug_log_message($error);
         }
 
-        //get additional phone number(s) for this contact. Here we get phone number(s) that are not primary
+        //get additional phone number(s) for this contact. Here we get phone number(s) that are  primary and not primary
         $additionalPhoneNumbers = array();
         try {
           $resultPhoneNumbers = civicrm_api3('Phone', 'get', array(
             'sequential' => 1,
             'contact_id' => $contactDetails['contact_id'],
-            'is_primary' => 0,
           ));
+
           if (!empty($resultPhoneNumbers['values'])) {
             foreach ($resultPhoneNumbers['values'] as $dontCare => $phoneDetails) {
-              $additionalPhoneNumbers[$phoneDetails['phone_type_id']][$phoneDetails['location_type_id']] = $phoneDetails['phone'];
+              $additionalPhoneNumbers[$phoneDetails['location_type_id']][$phoneDetails['phone_type_id']] = $phoneDetails['phone'];
             }
           }
         }
@@ -719,17 +719,31 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
           CRM_Core_Error::debug_log_message($error);
         }
 
-        //get additional address(s) for this contact. Here we get address(s) that are not primary
+        //get additional phone type - assistant
+        $phoneTypes = CRM_Core_PseudoConstant::get('CRM_Core_DAO_Phone', 'phone_type_id');
+        $assistantId = array_search(PHONE_TYPE_ASSISTANT, $phoneTypes) ? array_search(PHONE_TYPE_ASSISTANT, $phoneTypes) : '';
+
+        //get additional address(s) for this contact. Here we get address(s) that are primary and not primary
         $additionalAddresses = array();
         try {
           $resultAddresses = civicrm_api3('Address', 'get', array(
             'sequential' => 1,
             'contact_id' => $contactDetails['contact_id'],
-            'is_primary' => 0,
           ));
           if (!empty($resultAddresses['values'])) {
             foreach ($resultAddresses['values'] as $dontCare => $addressDetails) {
               $additionalAddresses[$addressDetails['location_type_id']]['street_address']    = $addressDetails['street_address'];
+              //Civi supplemental address maps to Outlook street address and is added on next line
+              $supplementalAddress = array();
+              if (CRM_Utils_Array::value('supplemental_address_1', $addressDetails)) {
+                $supplementalAddress[] = $addressDetails['supplemental_address_1'];
+              }
+              if (CRM_Utils_Array::value('supplemental_address_2', $addressDetails)) {
+                $supplementalAddress[] = $addressDetails['supplemental_address_2'];
+              }
+              if (!empty($supplementalAddress)) {
+                $additionalAddresses[$addressDetails['location_type_id']]['suppl_address']   = implode(", ", $supplementalAddress);
+              }
               $additionalAddresses[$addressDetails['location_type_id']]['city']              = $addressDetails['city'];
               $additionalAddresses[$addressDetails['location_type_id']]['postal_code']       = $addressDetails['postal_code'];
               $additionalAddresses[$addressDetails['location_type_id']]['state_province_id'] = $addressDetails['state_province_id'] ? CRM_Core_PseudoConstant::stateProvince($addressDetails['state_province_id']) : "";
@@ -759,14 +773,29 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
               if (!empty($resultCustomField['values'][0])) {
                 $customData[$resultCustomField['values'][0]['name']] = $customDataDetails['latest'];
 
+                $multipleOptionValues = array();
                 //if option group/value are used in the custom fields, get option_value label
                 if(CRM_Utils_Array::value('option_group_id', $resultCustomField['values'][0])) {
-                  $resultOptionValue = civicrm_api3('OptionValue', 'get', array(
-                    'sequential' => 1,
-                    'option_group_id' => $resultCustomField['values'][0]['option_group_id'],
-                    'value' => $customDataDetails['latest'],
-                  ));
-                  $customData[$resultCustomField['values'][0]['name']] = $resultOptionValue['values'][0]['label'];
+                  $multipleOptionValues[] = $customDataDetails['latest'];
+                  //handle multiple values for a custom field
+                  if(is_array($customDataDetails['latest']) &&
+                  !empty($customDataDetails['latest'])) {
+                    $multipleOptionValues = call_user_func_array('array_merge', $multipleOptionValues);
+                  }
+
+                  $multipleValues = array();
+                  foreach ($multipleOptionValues as $optVal) {
+                    if(CRM_Utils_Array::value('option_group_id', $resultCustomField['values'][0])) {
+                      $resultOptionValue = civicrm_api3('OptionValue', 'get', array(
+                        'sequential'      => 1,
+                        'option_group_id' => $resultCustomField['values'][0]['option_group_id'],
+                        'value'           => $optVal,
+                      ));
+                      $multipleValues[] = $resultOptionValue['values'][0]['label'];
+                    }
+                  }
+                  //comma separated custom field values
+                  $customData[$resultCustomField['values'][0]['name']] = implode(", ", $multipleValues);
                 }
               }
             }
@@ -787,17 +816,6 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         //primary email (Maps to Outlook field type -> Email)
         $temp[$groupID][$key]['email']                        = $contactDetails['email'];
 
-        //primary phone (Maps to Outlook field type -> Home)
-        $temp[$groupID][$key]['phone']                        = $contactDetails['phone'];
-
-        //primary address (Maps to Outlook field type -> Home)
-        //Please note: Outlook at the moment doesn't have field(s) for storing supplemental address 1 and supplemental address 2 so not sending these two field(s) to Outlook
-        $temp[$groupID][$key]['address']['street_address']    = $contactDetails['street_address'];
-        $temp[$groupID][$key]['address']['city']              = $contactDetails['city'];
-        $temp[$groupID][$key]['address']['postal_code']       = $contactDetails['postal_code'];
-        $temp[$groupID][$key]['address']['state_province_id'] = $contactDetails['state_province_id'] ?CRM_Core_PseudoConstant::stateProvince($contactDetails['state_province_id']) : "";
-        $temp[$groupID][$key]['address']['country_id']        = $contactDetails['country_id'] ? CRM_Core_PseudoConstant::country($contactDetails['country_id']) : "";
-
         //additional contact field(s)
         $temp[$groupID][$key]['current_employer']             = $contactDetails[$mappings['values']['CompanyName']];
         $temp[$groupID][$key]['job_title']                    = $contactDetails[$mappings['values']['JobTitle']];
@@ -806,31 +824,52 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         $temp[$groupID][$key]['email_2']                      = $additionalEmails[$mappings['values']['Email2Address']];
         $temp[$groupID][$key]['email_3']                      = $additionalEmails[$mappings['values']['Email3Address']];
 
-        //additional phone number(s): key mapping -> phone_2_1 = phone_[phone_type_id]_[just_a_random_number]
+        //additional phone number(s): key mapping -> phone_1_1 = phone_[location_type_id]_[phone_type_id]
         /* Following are the mappings of phone field(s)(Outlook vs CiviCRM)
-        * Business     -> Phone(work/any)
-        * Business 2   -> Mobile(work/any)
-        * Business fax -> Fax(work/any)
-        * Mobile       -> Mobile(home/any)
+        * Outlook         CiviCRM
+                          Location type       Phone type
+        * Home         -> Home              - Phone
+        * Home 2       -> Home              - Mobile
+        * Home fax     -> Home              - Fax
+        * Business     -> Work              - Phone
+        * Business 2   -> Work              - Mobile
+        * Business fax -> Work              - Fax
+        * Assistant    -> Work              - Assistant
         */
-        $temp[$groupID][$key]['phone_1']                       = $additionalPhoneNumbers[1][$mappings['values']['BusinessTelephoneNumber']];
-        $temp[$groupID][$key]['phone_2_1']                     = $additionalPhoneNumbers[2][$mappings['values']['Business2TelephoneNumber']];
-        $temp[$groupID][$key]['phone_3']                       = $additionalPhoneNumbers[3][$mappings['values']['BusinessFaxNumber']];
-        $temp[$groupID][$key]['phone_2_2']                     = $additionalPhoneNumbers[2][$mappings['values']['MobileTelephoneNumber']];
+        $temp[$groupID][$key]['phone_1_1']                    = $additionalPhoneNumbers[$mappings['values']['HomeTelephoneNumber']][1];
+        $temp[$groupID][$key]['phone_1_2']                    = $additionalPhoneNumbers[$mappings['values']['Home2TelephoneNumber']][2];
+        $temp[$groupID][$key]['phone_1_3']                    = $additionalPhoneNumbers[$mappings['values']['HomeFaxNumber']][3];
+        $temp[$groupID][$key]['phone_2_1']                    = $additionalPhoneNumbers[$mappings['values']['BusinessTelephoneNumber']][1];
+        $temp[$groupID][$key]['phone_2_2']                    = $additionalPhoneNumbers[$mappings['values']['Business2TelephoneNumber']][2];
+        $temp[$groupID][$key]['phone_2_3']                    = $additionalPhoneNumbers[$mappings['values']['BusinessFaxNumber']][3];
+        $temp[$groupID][$key]['phone_2_6']                    = $additionalPhoneNumbers[$mappings['values']['AssistantTelephoneNumber']][$assistantId];
 
-        //additional address(s)
-        //business address: key mapping -> address_2 = address_[just_a_random_number]
-        $temp[$groupID][$key]['address_2']                     = $additionalAddresses[$mappings['values']['BusinessAddressStreet']];
-        $temp[$groupID][$key]['address_2']                     = $additionalAddresses[$mappings['values']['BusinessAddressCity']];
-        $temp[$groupID][$key]['address_2']                     = $additionalAddresses[$mappings['values']['BusinessAddressPostalCode']];
-        $temp[$groupID][$key]['address_2']                     = $additionalAddresses[$mappings['values']['BusinessAddressState']];
-        $temp[$groupID][$key]['address_2']                     = $additionalAddresses[$mappings['values']['BusinessAddressCountry']];
+        //additional address(s): key mapping -> address_2 = address_[location_type_id]
+        /* Following are the mappings of address field(s)(Outlook vs CiviCRM)
+        * Outlook         CiviCRM
+                          Location type
+        * Home         -> Home
+        * Business     -> Work
+        * Other        -> Other
+        */
+        //home address
+        $temp[$groupID][$key]['address_1']                    = $additionalAddresses[$mappings['values']['HomeAddressStreet']];
+        $temp[$groupID][$key]['address_1']                    = $additionalAddresses[$mappings['values']['HomeAddressCity']];
+        $temp[$groupID][$key]['address_1']                    = $additionalAddresses[$mappings['values']['HomeAddressPostalCode']];
+        $temp[$groupID][$key]['address_1']                    = $additionalAddresses[$mappings['values']['HomeAddressState']];
+        $temp[$groupID][$key]['address_1']                    = $additionalAddresses[$mappings['values']['HomeAddressCountry']];
+        //business address
+        $temp[$groupID][$key]['address_2']                    = $additionalAddresses[$mappings['values']['BusinessAddressStreet']];
+        $temp[$groupID][$key]['address_2']                    = $additionalAddresses[$mappings['values']['BusinessAddressCity']];
+        $temp[$groupID][$key]['address_2']                    = $additionalAddresses[$mappings['values']['BusinessAddressPostalCode']];
+        $temp[$groupID][$key]['address_2']                    = $additionalAddresses[$mappings['values']['BusinessAddressState']];
+        $temp[$groupID][$key]['address_2']                    = $additionalAddresses[$mappings['values']['BusinessAddressCountry']];
         //other address
-        $temp[$groupID][$key]['address_3']                     = $additionalAddresses[$mappings['values']['OtherAddressStreet']];
-        $temp[$groupID][$key]['address_3']                     = $additionalAddresses[$mappings['values']['OtherAddressCity']];
-        $temp[$groupID][$key]['address_3']                     = $additionalAddresses[$mappings['values']['OtherAddressPostalCode']];
-        $temp[$groupID][$key]['address_3']                     = $additionalAddresses[$mappings['values']['OtherAddressState']];
-        $temp[$groupID][$key]['address_3']                     = $additionalAddresses[$mappings['values']['OtherAddressCountry']];
+        $temp[$groupID][$key]['address_4']                    = $additionalAddresses[$mappings['values']['OtherAddressStreet']];
+        $temp[$groupID][$key]['address_4']                    = $additionalAddresses[$mappings['values']['OtherAddressCity']];
+        $temp[$groupID][$key]['address_4']                    = $additionalAddresses[$mappings['values']['OtherAddressPostalCode']];
+        $temp[$groupID][$key]['address_4']                    = $additionalAddresses[$mappings['values']['OtherAddressState']];
+        $temp[$groupID][$key]['address_4']                    = $additionalAddresses[$mappings['values']['OtherAddressCountry']];
 
         //assign custom data array to temp array
         $temp[$groupID][$key][custom_fields]                   = $customData;
