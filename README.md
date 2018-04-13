@@ -9,14 +9,16 @@
 <h4 style="box-sizing: border-box; font-family: Raleway, sans-serif; font-weight: 500; line-height: 1.1; color: rgb(34, 34, 34); margin-top: 10px; margin-bottom: 10px; font-size: 18px; background-color: rgb(255, 255, 255);"><strong style="box-sizing: border-box;">Features:</strong></h4>
 
 <ol style="box-sizing: border-box; margin-top: 0px; margin-bottom: 10px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 21px; background-color: rgb(255, 255, 255);">
-	<li style="box-sizing: border-box;">Record emails from Outlook against CiviCRM contacts</li>
-	<li style="box-sizing: border-box;">Record emails against contacts from any mailbox</li>
+	<li style="box-sizing: border-box;">Select email recipients in Outlook originally created in CiviCRM</li>
+	<li style="box-sizing: border-box;">Choose groups in CiviCRM to synchronize to Outlook either automatically or manually</li>
+	<li style="box-sizing: border-box;">Synchronize many contact fields in CiviCRM to Outlook (work and other email, phone and address, custom contact fields, etc) without overwriting other custom Outlook contact fields not mapped to CiviCRM fields</li>
+	<li style="box-sizing: border-box;">Optionally delete contacts in Outlook no longer in synched CiviCRM groups</li>
+	<li style="box-sizing: border-box;">Record emails sent from Outlook as activities of recipient contacts in CiviCRM</li>
+	<li style="box-sizing: border-box;">Supports multiple attachments to emails</li>
 	<li style="box-sizing: border-box;">Uses email address deduplication to attach emails to the correct contact including creation of a new contact if they don&#39;t exist.</li>
 	<li style="box-sizing: border-box;">Prompts for duplicate contacts so that user can select which ones he wants to create the activity with.</li>
-	<li style="box-sizing: border-box;">Handles Multiple recipients creating an activity for each</li>
-	<li style="box-sizing: border-box;">Remembers deduplication settings so you dont have to continually pick the contact if exists multi times in CiviCRM</li>
-	<li style="box-sizing: border-box;">Manage prompt for filing into CiviCRM settings per user</li>
-	<li style="box-sizing: border-box;">Supports multiple attachments</li>
+	<li style="box-sizing: border-box;">Remembers deduplication settings so you dont have to continually pick the contact if exists multiple times in CiviCRM</li>
+	<li style="box-sizing: border-box;">Allows each CiviCRM user to have their own personal settings</li>
 </ol>
 
 <p>&nbsp;</p>
