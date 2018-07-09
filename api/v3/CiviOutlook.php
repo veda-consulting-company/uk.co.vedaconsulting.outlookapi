@@ -635,6 +635,26 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
     $outlookDistLists = explode("::", $distLists);
   }
 
+  //check if we have received api_key from the outlook
+  $group_id = '';
+  if($params['useapi_key']){
+    //get the request contact ID
+    $request_sql = "select id,contact_type from civicrm_contact where api_key = '".$params['useapi_key']."'";
+    $request_dao = CRM_Core_DAO::executeQuery( $request_sql );
+
+    if($request_dao->fetch()){
+      $request_contactID = $request_dao->id;
+
+      //get the list of group ID to be processed
+      $group = CRM_ACL_API::group(2,$request_contactID);
+      foreach($group as $k1 => $v1){
+        $group_id = $v1.",";
+      }
+
+      $group_id = rtrim($group_id,',');
+    }
+  }
+
   //get only the Outlook syncable groups
   $query = "
       SELECT se.entity_id as group_id, grp.title
@@ -642,6 +662,11 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
       INNER JOIN civicrm_group grp
       ON se.entity_id = grp.id
       WHERE se.sync_to_outlook_15 = '1'";
+
+  //if we have specific group id then fetch them
+  if (!empty($group_id)) {
+    $query .= " AND grp.id in (".$group_id.")";
+  }
 
   //if group names are from outlook check is they are set to syncable in Civi
   if (!empty($outlookDistLists)) {
