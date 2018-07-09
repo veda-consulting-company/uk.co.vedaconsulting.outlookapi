@@ -174,24 +174,24 @@ function civicrm_api3_civi_outlook_createactivity($params) {
       $filteredArray = array();
       foreach ($resultOutlookContact['values'] as $key => $details) {
         if (CRM_Utils_Array::value('contact_id', $details)) {
-          $filteredArray[$key][contact_id] = $details['contact_id'];
+          $filteredArray[$key]['contact_id'] = $details['contact_id'];
         }
         if (CRM_Utils_Array::value('contact_type', $details)) {
-          $filteredArray[$key][contact_type] = $details['contact_type'];
+          $filteredArray[$key]['contact_type'] = $details['contact_type'];
         }
         if (CRM_Utils_Array::value('sort_name', $details)) {
-          $filteredArray[$key][sort_name] = $details['sort_name'];
+          $filteredArray[$key]['sort_name'] = $details['sort_name'];
         }
         else {
           if (CRM_Utils_Array::value('contact_id', $details)) {
             $sort_name = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $details['contact_id'], 'sort_name', 'id');
             if ($sort_name) {
-              $filteredArray[$key][sort_name] = $sort_name;
+              $filteredArray[$key]['sort_name'] = $sort_name;
             }
           }
         }
         if (CRM_Utils_Array::value('email', $details)) {
-          $filteredArray[$key][email] = $details['email'];
+          $filteredArray[$key]['email'] = $details['email'];
         }
       }
 
