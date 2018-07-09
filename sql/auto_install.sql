@@ -35,7 +35,7 @@ INSERT INTO `outlook_civicrm_additional_contact_field_mapping` (`id`, `outlook_f
 (3, 'Email2Address', '2'),
 (4, 'Email3Address', '5'),
 (5, 'BusinessTelephoneNumber', '2'),
-(6, 'Business2TelephoneNumber', '5'),
+(6, 'Business2TelephoneNumber', '2'),
 (7, 'BusinessFaxNumber', '2'),
 (8, 'MobileTelephoneNumber', '2'),
 (9, 'BusinessAddressStreet', '2'),
@@ -46,4 +46,6 @@ INSERT INTO `outlook_civicrm_additional_contact_field_mapping` (`id`, `outlook_f
 (14, 'OtherAddressCity', '4'),
 (15, 'OtherAddressPostalCode', '4'),
 (16, 'OtherAddressState', '4'),
-(17, 'OtherAddressCountry', '4');
+(17, 'OtherAddressCountry', '4'),
+(18, 'address_2', '2'),
+(19, 'address_1', '1');
