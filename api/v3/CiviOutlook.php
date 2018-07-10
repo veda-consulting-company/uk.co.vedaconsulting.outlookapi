@@ -155,9 +155,10 @@ function civicrm_api3_civi_outlook_createactivity($params) {
 
   //Email is required here
   if (CRM_Utils_Array::value('email', $params)) {
-    $recipientEmail = $params['email'];
+      $recipientEmail = $params['email'];
+      $recipientName = $params['name'];
 
-    if (preg_match('!\(([^\)]+)\)!', $recipientEmail, $match)) {
+      if (preg_match('!\(([^\)]+)\)!', $recipientEmail, $match)) {
         $recipientEmail = $match[1];
       }
       $paramGetEmail['email']= $recipientEmail;
@@ -222,7 +223,21 @@ function civicrm_api3_civi_outlook_createactivity($params) {
           //Create new contact
           $contact = array();
           $contact['contact_type'] = "Individual";
-          $contact['email']=  $recipientEmail;
+          $contact['email'] =  $recipientEmail;
+          if ($recipientName) {
+            // Attempt to split the name on whitespace
+            $parts = preg_split('/\s+/', trim($recipientName));
+            if (count($parts) == 1) {
+              $contact['last_name'] = $recipientName;
+            } elseif (count($parts) == 2) {
+              $contact['first_name'] = $parts[0];
+              $contact['last_name'] = $parts[1];
+            } elseif (count($parts) == 3) {
+              $contact['first_name'] = $parts[0];
+              $contact['middle_name'] = $parts[1];
+              $contact['last_name'] = $parts[2];
+            }
+          }
           $contactCreate = civicrm_api3('Contact', 'create', $contact );
           $singleContactCreated = array();
           $singleContactCreated['singleContactCreated'] = $contactCreate['id'];
@@ -257,6 +272,9 @@ function civicrm_api3_civi_outlook_createactivity($params) {
       }
       if (CRM_Utils_Array::value('email_body', $params)) {
         $customActivityParams['details'] = $params['email_body'];
+      }
+      if (CRM_Utils_Array::value('date_time', $params)) {
+        $customActivityParams['activity_date_time'] = date("Y-m-d\TH:i:s", (int)$params['date_time']);
       }
       $result = outlook_civicrm_api3('Activity', 'create', $customActivityParams, 'CiviOutlook', 'createactivity', $params);
       $finalresults[] = $result;
