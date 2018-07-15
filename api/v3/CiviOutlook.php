@@ -156,7 +156,7 @@ function civicrm_api3_civi_outlook_createactivity($params) {
   //Email is required here
   if (CRM_Utils_Array::value('email', $params)) {
       $recipientEmail = $params['email'];
-      $recipientName = $params['name'];
+      $recipientName = (isset($params['name']) ? $params['name'] : '');
 
       if (preg_match('!\(([^\)]+)\)!', $recipientEmail, $match)) {
         $recipientEmail = $match[1];
