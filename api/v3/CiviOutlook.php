@@ -196,7 +196,7 @@ function civicrm_api3_civi_outlook_createactivity($params) {
         }
       }
 
-      $resultOutlookContact[values] = $filteredArray;
+      $resultOutlookContact['values'] = $filteredArray;
       //If there are duplicate contacts return those contacts to Outlook
       if (!array_key_exists('ot_target_contact_id', $params)) {
         if (!empty($resultOutlookContact)) {
@@ -890,7 +890,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         $temp[$groupID][$key]['address_4']                    = $additionalAddresses[$mappings['values']['OtherAddressCountry']];
 
         //assign custom data array to temp array
-        $temp[$groupID][$key][custom_fields]                   = $customData;
+        $temp[$groupID][$key]['custom_fields']                   = $customData;
 
         //perform cleanup
         unset($additionalEmails, $additionalPhoneNumbers, $additionalAddresses);
