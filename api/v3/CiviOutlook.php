@@ -155,9 +155,10 @@ function civicrm_api3_civi_outlook_createactivity($params) {
 
   //Email is required here
   if (CRM_Utils_Array::value('email', $params)) {
-    $recipientEmail = $params['email'];
+      $recipientEmail = $params['email'];
+      $recipientName = (isset($params['name']) ? $params['name'] : '');
 
-    if (preg_match('!\(([^\)]+)\)!', $recipientEmail, $match)) {
+      if (preg_match('!\(([^\)]+)\)!', $recipientEmail, $match)) {
         $recipientEmail = $match[1];
       }
       $paramGetEmail['email']= $recipientEmail;
@@ -174,28 +175,28 @@ function civicrm_api3_civi_outlook_createactivity($params) {
       $filteredArray = array();
       foreach ($resultOutlookContact['values'] as $key => $details) {
         if (CRM_Utils_Array::value('contact_id', $details)) {
-          $filteredArray[$key][contact_id] = $details['contact_id'];
+          $filteredArray[$key]['contact_id'] = $details['contact_id'];
         }
         if (CRM_Utils_Array::value('contact_type', $details)) {
-          $filteredArray[$key][contact_type] = $details['contact_type'];
+          $filteredArray[$key]['contact_type'] = $details['contact_type'];
         }
         if (CRM_Utils_Array::value('sort_name', $details)) {
-          $filteredArray[$key][sort_name] = $details['sort_name'];
+          $filteredArray[$key]['sort_name'] = $details['sort_name'];
         }
         else {
           if (CRM_Utils_Array::value('contact_id', $details)) {
             $sort_name = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $details['contact_id'], 'sort_name', 'id');
             if ($sort_name) {
-              $filteredArray[$key][sort_name] = $sort_name;
+              $filteredArray[$key]['sort_name'] = $sort_name;
             }
           }
         }
         if (CRM_Utils_Array::value('email', $details)) {
-          $filteredArray[$key][email] = $details['email'];
+          $filteredArray[$key]['email'] = $details['email'];
         }
       }
 
-      $resultOutlookContact[values] = $filteredArray;
+      $resultOutlookContact['values'] = $filteredArray;
       //If there are duplicate contacts return those contacts to Outlook
       if (!array_key_exists('ot_target_contact_id', $params)) {
         if (!empty($resultOutlookContact)) {
@@ -222,7 +223,21 @@ function civicrm_api3_civi_outlook_createactivity($params) {
           //Create new contact
           $contact = array();
           $contact['contact_type'] = "Individual";
-          $contact['email']=  $recipientEmail;
+          $contact['email'] =  $recipientEmail;
+          if ($recipientName) {
+            // Attempt to split the name on whitespace
+            $parts = preg_split('/\s+/', trim($recipientName));
+            if (count($parts) == 1) {
+              $contact['last_name'] = $recipientName;
+            } elseif (count($parts) == 2) {
+              $contact['first_name'] = $parts[0];
+              $contact['last_name'] = $parts[1];
+            } elseif (count($parts) == 3) {
+              $contact['first_name'] = $parts[0];
+              $contact['middle_name'] = $parts[1];
+              $contact['last_name'] = $parts[2];
+            }
+          }
           $contactCreate = civicrm_api3('Contact', 'create', $contact );
           $singleContactCreated = array();
           $singleContactCreated['singleContactCreated'] = $contactCreate['id'];
@@ -257,6 +272,9 @@ function civicrm_api3_civi_outlook_createactivity($params) {
       }
       if (CRM_Utils_Array::value('email_body', $params)) {
         $customActivityParams['details'] = $params['email_body'];
+      }
+      if (CRM_Utils_Array::value('date_time', $params)) {
+        $customActivityParams['activity_date_time'] = date("Y-m-d\TH:i:s", (int)$params['date_time']);
       }
       $result = outlook_civicrm_api3('Activity', 'create', $customActivityParams, 'CiviOutlook', 'createactivity', $params);
       $finalresults[] = $result;
@@ -913,7 +931,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         $temp[$groupID][$key]['country_2'] = $additionalAddresses[$mappings['values']['address_2']]['country_id'];
 
         //assign custom data array to temp array
-        $temp[$groupID][$key][custom_fields]                   = $customData;
+        $temp[$groupID][$key]['custom_fields']                   = $customData;
 
         //perform cleanup
         unset($additionalEmails, $additionalPhoneNumbers, $additionalAddresses);
