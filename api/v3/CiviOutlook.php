@@ -635,6 +635,26 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
     $outlookDistLists = explode("::", $distLists);
   }
 
+  //check if we have received api_key from the outlook
+  $group_id = '';
+  if($params['useapi_key']){
+    //get the request contact ID
+    $request_sql = "select id,contact_type from civicrm_contact where api_key = '".$params['useapi_key']."'";
+    $request_dao = CRM_Core_DAO::executeQuery( $request_sql );
+
+    if($request_dao->fetch()){
+      $request_contactID = $request_dao->id;
+
+      //get the list of group ID to be processed
+      $group = CRM_ACL_API::group(2,$request_contactID);
+      foreach($group as $k1 => $v1){
+        $group_id = $v1.",";
+      }
+
+      $group_id = rtrim($group_id,',');
+    }
+  }
+
   //get only the Outlook syncable groups
   $query = "
       SELECT se.entity_id as group_id, grp.title
@@ -642,6 +662,11 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
       INNER JOIN civicrm_group grp
       ON se.entity_id = grp.id
       WHERE se.sync_to_outlook_15 = '1'";
+
+  //if we have specific group id then fetch them
+  if (!empty($group_id)) {
+    $query .= " AND grp.id in (".$group_id.")";
+  }
 
   //if group names are from outlook check is they are set to syncable in Civi
   if (!empty($outlookDistLists)) {
@@ -702,6 +727,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
 
         //get additional phone number(s) for this contact. Here we get phone number(s) that are  primary and not primary
         $additionalPhoneNumbers = array();
+        $multiplePhoneNumbers = array();
         try {
           $resultPhoneNumbers = civicrm_api3('Phone', 'get', array(
             'sequential' => 1,
@@ -710,7 +736,11 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
 
           if (!empty($resultPhoneNumbers['values'])) {
             foreach ($resultPhoneNumbers['values'] as $dontCare => $phoneDetails) {
-              $additionalPhoneNumbers[$phoneDetails['location_type_id']][$phoneDetails['phone_type_id']] = $phoneDetails['phone'];
+              if (isset($additionalPhoneNumbers[$phoneDetails['location_type_id']][$phoneDetails['phone_type_id']]) && !empty($additionalPhoneNumbers[$phoneDetails['location_type_id']][$phoneDetails['phone_type_id']])) {
+                $multiplePhoneNumbers[$phoneDetails['location_type_id']][$phoneDetails['phone_type_id']] = $phoneDetails['phone'];
+              } else {
+                $additionalPhoneNumbers[$phoneDetails['location_type_id']][$phoneDetails['phone_type_id']] = $phoneDetails['phone'];
+              }
             }
           }
         }
@@ -832,7 +862,8 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         * Home 2       -> Home              - Mobile
         * Home fax     -> Home              - Fax
         * Business     -> Work              - Phone
-        * Business 2   -> Work              - Mobile
+        * Business 2   -> Work              - Phone (multiple work phone)
+        * Mobile       -> Work              - Mobile
         * Business fax -> Work              - Fax
         * Assistant    -> Work              - Assistant
         */
@@ -840,7 +871,9 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         $temp[$groupID][$key]['phone_1_2']                    = $additionalPhoneNumbers[$mappings['values']['Home2TelephoneNumber']][2];
         $temp[$groupID][$key]['phone_1_3']                    = $additionalPhoneNumbers[$mappings['values']['HomeFaxNumber']][3];
         $temp[$groupID][$key]['phone_2_1']                    = $additionalPhoneNumbers[$mappings['values']['BusinessTelephoneNumber']][1];
-        $temp[$groupID][$key]['phone_2_2']                    = $additionalPhoneNumbers[$mappings['values']['Business2TelephoneNumber']][2];
+        // Multiple work phone to be added to Business2TelephoneNumber
+        $temp[$groupID][$key]['phone_2_2']                    = $multiplePhoneNumbers[$mappings['values']['Business2TelephoneNumber']][1];
+        $temp[$groupID][$key]['mobile']                       = $additionalPhoneNumbers[$mappings['values']['MobileTelephoneNumber']][2];
         $temp[$groupID][$key]['phone_2_3']                    = $additionalPhoneNumbers[$mappings['values']['BusinessFaxNumber']][3];
         $temp[$groupID][$key]['phone_2_6']                    = $additionalPhoneNumbers[$mappings['values']['AssistantTelephoneNumber']][$assistantId];
 
@@ -870,6 +903,14 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         $temp[$groupID][$key]['address_4']                    = $additionalAddresses[$mappings['values']['OtherAddressPostalCode']];
         $temp[$groupID][$key]['address_4']                    = $additionalAddresses[$mappings['values']['OtherAddressState']];
         $temp[$groupID][$key]['address_4']                    = $additionalAddresses[$mappings['values']['OtherAddressCountry']];
+
+        //Bussiness address
+        $temp[$groupID][$key]['bus_2'] = $additionalAddresses[$mappings['values']['address_2']]['street_address'];
+        $temp[$groupID][$key]['sup_2'] = $additionalAddresses[$mappings['values']['address_2']]['suppl_address'];
+        $temp[$groupID][$key]['city_2'] = $additionalAddresses[$mappings['values']['address_2']]['city'];
+        $temp[$groupID][$key]['post_2'] = $additionalAddresses[$mappings['values']['address_2']]['postal_code'];
+        $temp[$groupID][$key]['state_2'] = $additionalAddresses[$mappings['values']['address_2']]['state_province_id'];
+        $temp[$groupID][$key]['country_2'] = $additionalAddresses[$mappings['values']['address_2']]['country_id'];
 
         //assign custom data array to temp array
         $temp[$groupID][$key][custom_fields]                   = $customData;
