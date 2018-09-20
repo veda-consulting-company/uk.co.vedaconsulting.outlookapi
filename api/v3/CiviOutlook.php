@@ -655,21 +655,41 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
 
   //check if we have received api_key from the outlook
   $group_id = '';
+
   if($params['useapi_key']){
     //get the request contact ID
     $request_sql = "select id,contact_type from civicrm_contact where api_key = '".$params['useapi_key']."'";
-    $request_dao = CRM_Core_DAO::executeQuery( $request_sql );
+    CRM_Core_Error::debug_log_message( 'request_sql = '. print_r($request_sql,true), $out = false );
+
+	  $request_dao = CRM_Core_DAO::executeQuery( $request_sql );
 
     if($request_dao->fetch()){
       $request_contactID = $request_dao->id;
 
+      /*$sql_group = "select * from civicrm_group_contact where contact_id = ".$request_contactID;
+      CRM_Core_Error::debug_log_message( 'sql_group = '. print_r($sql_group,true), $out = false );
+
+      $dao_group = CRM_Core_DAO::executeQuery( $sql_group );
+      $group_id = '';
+      while ($dao_group->fetch()){
+      $group_id = $group_id.$dao_group->group_id.",";
+      }
+      $group_id = rtrim($group_id,',');*/
+      //CRM_Core_Error::debug_log_message( 'group_id = '. print_r($group_id,true), $out = false );
+
       //get the list of group ID to be processed
-      $group = CRM_ACL_API::group(2,$request_contactID);
+      $group = CRM_ACL_API::group(2,$request_contactID,'civicrm_saved_search',NULL,$group_id);
+      $group_id = '';
+      CRM_Core_Error::debug_log_message( 'group = '. print_r($group,true), $out = false );
+
       foreach($group as $k1 => $v1){
-        $group_id = $v1.",";
+      $group_id = $group_id.$v1.",";
       }
 
+      //CRM_Core_Error::debug_log_message( 'group_id = '. print_r($group_id,true), $out = false );
+
       $group_id = rtrim($group_id,',');
+      CRM_Core_Error::debug_log_message( 'group_id = '. print_r($group_id,true), $out = false );
     }
   }
 
@@ -685,6 +705,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
   if (!empty($group_id)) {
     $query .= " AND grp.id in (".$group_id.")";
   }
+  CRM_Core_Error::debug_log_message( 'query = '. print_r($query,true), $out = false );
 
   //if group names are from outlook check is they are set to syncable in Civi
   if (!empty($outlookDistLists)) {
@@ -693,6 +714,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
     }
     $query .= " AND grp.title IN (".implode($outlookDistLists, ',').")";
   }
+	require_once 'CRM/Core/Error.php';
 
   $dao = CRM_Core_DAO::executeQuery($query);
 
@@ -732,6 +754,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
             'contact_id' => $contactDetails['contact_id'],
             'is_primary' => 0,
           ));
+
           if (!empty($resultEmails['values'])) {
             foreach ($resultEmails['values'] as $dontCare => $emailDetails) {
               $additionalEmails[$emailDetails['location_type_id']] = $emailDetails['email'];
@@ -871,6 +894,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         //additional email(s): key mapping -> email_2 = email_[just_a_random_number]
         $temp[$groupID][$key]['email_2']                      = $additionalEmails[$mappings['values']['Email2Address']];
         $temp[$groupID][$key]['email_3']                      = $additionalEmails[$mappings['values']['Email3Address']];
+        $temp[$groupID][$key]['email_4']                      = 'assistant@test.com';//$additionalEmails[$mappings['values']['Assistant_type']];
 
         //additional phone number(s): key mapping -> phone_1_1 = phone_[location_type_id]_[phone_type_id]
         /* Following are the mappings of phone field(s)(Outlook vs CiviCRM)
@@ -885,15 +909,25 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         * Business fax -> Work              - Fax
         * Assistant    -> Work              - Assistant
         */
-        $temp[$groupID][$key]['phone_1_1']                    = $additionalPhoneNumbers[$mappings['values']['HomeTelephoneNumber']][1];
-        $temp[$groupID][$key]['phone_1_2']                    = $additionalPhoneNumbers[$mappings['values']['Home2TelephoneNumber']][2];
-        $temp[$groupID][$key]['phone_1_3']                    = $additionalPhoneNumbers[$mappings['values']['HomeFaxNumber']][3];
-        $temp[$groupID][$key]['phone_2_1']                    = $additionalPhoneNumbers[$mappings['values']['BusinessTelephoneNumber']][1];
+
+		//home telephone number
+		$temp[$groupID][$key]['phone_1_1']                    = $additionalPhoneNumbers[$mappings['values']['HomeTelephoneNumber']][1];
+        //home type mobile - Phone_1_2 is not passed in but mobile is been passed
+		//$temp[$groupID][$key]['phone_1_2']                       = $additionalPhoneNumbers[$mappings['values']['Home2TelephoneNumber']][2];
+		$temp[$groupID][$key]['phone_1_3']                    = $additionalPhoneNumbers[$mappings['values']['HomeFaxNumber']][3];
         // Multiple work phone to be added to Business2TelephoneNumber
-        $temp[$groupID][$key]['phone_2_2']                    = $multiplePhoneNumbers[$mappings['values']['Business2TelephoneNumber']][1];
-        $temp[$groupID][$key]['mobile']                       = $additionalPhoneNumbers[$mappings['values']['MobileTelephoneNumber']][2];
+
+		CRM_Core_Error::debug_var('additionalPhoneNumbers', $additionalPhoneNumbers);
+		//business telephone number
+		$temp[$groupID][$key]['phone_2_1']                    = $additionalPhoneNumbers[$mappings['values']['BusinessTelephoneNumber']][1];
+        $temp[$groupID][$key]['phone_2_2']                    = $additionalPhoneNumbers[$mappings['values']['Business2TelephoneNumber']][2];
         $temp[$groupID][$key]['phone_2_3']                    = $additionalPhoneNumbers[$mappings['values']['BusinessFaxNumber']][3];
-        $temp[$groupID][$key]['phone_2_6']                    = $additionalPhoneNumbers[$mappings['values']['AssistantTelephoneNumber']][$assistantId];
+        $temp[$groupID][$key]['phone_2_6']                    = $additionalPhoneNumbers[$mappings['values']['Assistant_type']][1];
+        //$temp[$groupID][$key]['phone_2_6']                    = '9999999999';
+
+		//$temp[$groupID][$key]['mobile']                       = $additionalPhoneNumbers[$mappings['values']['MobileTelephoneNumber']][2];
+		//work mobile number
+		$temp[$groupID][$key]['mobile']                    = $additionalPhoneNumbers[$mappings['values']['MobileTelephoneNumber']][2];
 
         //additional address(s): key mapping -> address_2 = address_[location_type_id]
         /* Following are the mappings of address field(s)(Outlook vs CiviCRM)
@@ -904,31 +938,26 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
         * Other        -> Other
         */
         //home address
-        $temp[$groupID][$key]['address_1']                    = $additionalAddresses[$mappings['values']['HomeAddressStreet']];
-        $temp[$groupID][$key]['address_1']                    = $additionalAddresses[$mappings['values']['HomeAddressCity']];
-        $temp[$groupID][$key]['address_1']                    = $additionalAddresses[$mappings['values']['HomeAddressPostalCode']];
-        $temp[$groupID][$key]['address_1']                    = $additionalAddresses[$mappings['values']['HomeAddressState']];
-        $temp[$groupID][$key]['address_1']                    = $additionalAddresses[$mappings['values']['HomeAddressCountry']];
+        $temp[$groupID][$key]['address_1']['street_address']		= $additionalAddresses[$mappings['values']['address_1']]['street_address'];
+        $temp[$groupID][$key]['address_1']['suppl_address']         = $additionalAddresses[$mappings['values']['address_1']]['suppl_address'];
+        $temp[$groupID][$key]['address_1']['city']                  = $additionalAddresses[$mappings['values']['address_1']]['city'];
+        $temp[$groupID][$key]['address_1']['postal_code']			= $additionalAddresses[$mappings['values']['address_1']]['postal_code'];
+        $temp[$groupID][$key]['address_1']['state_province_id']		= $additionalAddresses[$mappings['values']['address_1']]['state_province_id'];
+        $temp[$groupID][$key]['address_1']['country_id']			= $additionalAddresses[$mappings['values']['address_1']]['country_id'];
         //business address
-        $temp[$groupID][$key]['address_2']                    = $additionalAddresses[$mappings['values']['BusinessAddressStreet']];
-        $temp[$groupID][$key]['address_2']                    = $additionalAddresses[$mappings['values']['BusinessAddressCity']];
-        $temp[$groupID][$key]['address_2']                    = $additionalAddresses[$mappings['values']['BusinessAddressPostalCode']];
-        $temp[$groupID][$key]['address_2']                    = $additionalAddresses[$mappings['values']['BusinessAddressState']];
-        $temp[$groupID][$key]['address_2']                    = $additionalAddresses[$mappings['values']['BusinessAddressCountry']];
+        $temp[$groupID][$key]['address_2']['street_address']		= $additionalAddresses[$mappings['values']['address_2']]['street_address'];
+        $temp[$groupID][$key]['address_2']['suppl_address']			= $additionalAddresses[$mappings['values']['address_2']]['suppl_address'];
+        $temp[$groupID][$key]['address_2']['city']                  = $additionalAddresses[$mappings['values']['address_2']]['city'];
+        $temp[$groupID][$key]['address_2']['postal_code']           = $additionalAddresses[$mappings['values']['address_2']]['postal_code'];
+        $temp[$groupID][$key]['address_2']['state_province_id']     = $additionalAddresses[$mappings['values']['address_2']]['state_province_id'];
+        $temp[$groupID][$key]['address_2']['country_id']            = $additionalAddresses[$mappings['values']['address_2']]['country_id'];
         //other address
-        $temp[$groupID][$key]['address_4']                    = $additionalAddresses[$mappings['values']['OtherAddressStreet']];
-        $temp[$groupID][$key]['address_4']                    = $additionalAddresses[$mappings['values']['OtherAddressCity']];
-        $temp[$groupID][$key]['address_4']                    = $additionalAddresses[$mappings['values']['OtherAddressPostalCode']];
-        $temp[$groupID][$key]['address_4']                    = $additionalAddresses[$mappings['values']['OtherAddressState']];
-        $temp[$groupID][$key]['address_4']                    = $additionalAddresses[$mappings['values']['OtherAddressCountry']];
-
-        //Bussiness address
-        $temp[$groupID][$key]['bus_2'] = $additionalAddresses[$mappings['values']['address_2']]['street_address'];
-        $temp[$groupID][$key]['sup_2'] = $additionalAddresses[$mappings['values']['address_2']]['suppl_address'];
-        $temp[$groupID][$key]['city_2'] = $additionalAddresses[$mappings['values']['address_2']]['city'];
-        $temp[$groupID][$key]['post_2'] = $additionalAddresses[$mappings['values']['address_2']]['postal_code'];
-        $temp[$groupID][$key]['state_2'] = $additionalAddresses[$mappings['values']['address_2']]['state_province_id'];
-        $temp[$groupID][$key]['country_2'] = $additionalAddresses[$mappings['values']['address_2']]['country_id'];
+        $temp[$groupID][$key]['address_4']['street_address']		= $additionalAddresses[$mappings['values']['address_4']]['street_address'];
+        $temp[$groupID][$key]['address_4']['suppl_address']			= $additionalAddresses[$mappings['values']['address_4']]['suppl_address'];
+        $temp[$groupID][$key]['address_4']['city']                  = $additionalAddresses[$mappings['values']['address_4']]['city'];
+        $temp[$groupID][$key]['address_4']['postal_code']           = $additionalAddresses[$mappings['values']['address_4']]['postal_code'];
+        $temp[$groupID][$key]['address_4']['state_province_id']     = $additionalAddresses[$mappings['values']['address_4']]['state_province_id'];
+        $temp[$groupID][$key]['address_4']['country_id']            = $additionalAddresses[$mappings['values']['address_4']]['country_id'];
 
         //assign custom data array to temp array
         $temp[$groupID][$key]['custom_fields']                   = $customData;
@@ -941,6 +970,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
 
   //build final result and return to Outlook
   $result['values'] = call_user_func_array('array_merge', $temp);
+
   return $result;
 }
 

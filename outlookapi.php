@@ -122,20 +122,21 @@ function outlookapi_civicrm_alterAPIPermissions($entity, $action, &$params, &$pe
 
   //Custom APIs
   $permissions['civi_outlook']['getdomain'] = array('access CiviCRM','access AJAX API');
-  $permissions['civi_outlook']['createactivity'] = array('access CiviCRM', 'access AJAX API', 'add contacts', 'view all contacts', 'view all activities', 'access uploaded files');
+  $permissions['civi_outlook']['createactivity'] = array('access CiviCRM', 'access AJAX API', 'access uploaded files');
   $permissions['civi_outlook']['insertauditlog'] = array('access CiviCRM', 'access AJAX API');
   $permissions['civi_outlook']['getlables'] = array('access CiviCRM', 'access AJAX API');
   $permissions['civi_outlook']['userdefault'] = array('access CiviCRM', 'access AJAX API');
   $permissions['civi_outlook']['getuserdefaults'] = array('access CiviCRM', 'access AJAX API');
   $permissions['civi_outlook']['setting'] = array('access CiviCRM', 'access AJAX API');
   $permissions['civi_outlook']['processattachments'] = array('access CiviCRM', 'access AJAX API', 'access uploaded files');
-  $permissions['civi_outlook']['getactivitytype'] = array('access CiviCRM', 'access AJAX API', 'access uploaded files', 'view all activities');
+  $permissions['civi_outlook']['getactivitytype'] = array('access CiviCRM', 'access AJAX API', 'access uploaded files');
   $permissions['civi_outlook']['getcaseactivitytype'] = array('access CiviCRM', 'access AJAX API', 'access my cases and activities');
   $permissions['civi_outlook']['createnewcase'] = array('access CiviCRM', 'access AJAX API', 'add cases', 'access my cases and activities');
   $permissions['civi_outlook']['getcivicasestatus'] = array('access CiviCRM', 'access AJAX API', 'access my cases and activities');
   $permissions['civi_outlook']['getcivicasetypes'] = array('access CiviCRM', 'access AJAX API', 'access my cases and activities');
   $permissions['civi_outlook']['getcivicases'] = array('access CiviCRM', 'access AJAX API', 'access my cases and activities');
-  $permissions['civi_outlook']['getgroupcontacts'] = array('access CiviCRM');
+  $permissions['civi_outlook']['getgroupcontacts'] = array( 'access CiviCRM');
+  $permissions['civi_outlook']['getvalidid'] = array( 'view my contact');
 }
 
 
