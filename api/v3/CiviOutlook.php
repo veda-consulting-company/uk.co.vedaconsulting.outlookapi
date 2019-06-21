@@ -740,7 +740,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
   }
 
   //get Outlook and CiviCRM field mapping for additional contact details
-  $mappings = civicrm_api3_civi_outlook_getadditionalfieldmapping();
+  $mappings = civicrm_api3_civi_outlook_getadditionalfieldmapping([]);
 
   //send only the essential/required contact details
   if (!empty($groupData)) {
@@ -842,7 +842,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
                 'id'         => $customDataDetails['id'],
               ));
               if (!empty($resultCustomField['values'][0])) {
-                $customData[$resultCustomField['values'][0]['name']] = $customDataDetails['latest'];
+                $customData['civi_custom_field_' . $resultCustomField['values'][0]['name']] = $customDataDetails['latest'];
 
                 $multipleOptionValues = array();
                 //if option group/value are used in the custom fields, get option_value label
@@ -866,7 +866,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
                     }
                   }
                   //comma separated custom field values
-                  $customData[$resultCustomField['values'][0]['name']] = implode(", ", $multipleValues);
+                  $customData['civi_custom_field_' . $resultCustomField['values'][0]['name']] = implode(", ", $multipleValues);
                 }
               }
             }
@@ -917,7 +917,7 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
 		$temp[$groupID][$key]['phone_1_3']                    = $additionalPhoneNumbers[$mappings['values']['HomeFaxNumber']][3];
         // Multiple work phone to be added to Business2TelephoneNumber
 
-		CRM_Core_Error::debug_var('additionalPhoneNumbers', $additionalPhoneNumbers);
+		//CRM_Core_Error::debug_var('additionalPhoneNumbers', $additionalPhoneNumbers);
 		//business telephone number
 		$temp[$groupID][$key]['phone_2_1']                    = $additionalPhoneNumbers[$mappings['values']['BusinessTelephoneNumber']][1];
         $temp[$groupID][$key]['phone_2_2']                    = $additionalPhoneNumbers[$mappings['values']['Business2TelephoneNumber']][2];
@@ -969,9 +969,9 @@ function civicrm_api3_civi_outlook_getgroupcontacts($params) {
   }
 
   //build final result and return to Outlook
-  $result['values'] = call_user_func_array('array_merge', $temp);
+  $result = call_user_func_array('array_merge', $temp);
 
-  return $result;
+  return civicrm_api3_create_success($result, $params, 'CiviOutlook', 'getgroupcontacts');
 }
 
 
