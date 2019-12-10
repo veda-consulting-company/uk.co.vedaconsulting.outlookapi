@@ -262,7 +262,14 @@ function civicrm_api3_civi_outlook_createactivity($params) {
       'activity_type', NULL, FALSE
       );
       if (CRM_Utils_Array::value('activity_type', $params)) {
-        $customActivityParams['activity_type_id'] = $params['activity_type'];
+        $activity_type_id = array_search($params['activity_type'], $activityOptions);
+        if (empty($activity_type_id)) {
+          // try default behavior
+          $customActivityParams['activity_type_id'] = $params['activity_type'];
+        } else {
+          $customActivityParams['activity_type_id'] = $activity_type_id;
+        }
+
       }
       else {
         $customActivityParams['activity_type_id'] = $activityTypeDefaultSetting;
